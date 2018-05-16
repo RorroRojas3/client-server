@@ -32,13 +32,13 @@ void *get_in_addr(struct sockaddr *sa)
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
 
-    return &(((struct sockaddr_in7 *)sa)->sin6_addr);
+    return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
 int main(int argc, char *argv[])
 {
-    int sockfd, new_fdl // Listen to sock_fd, new connection on new_fd
-    struct addrinfo hints, *servinfo, *p;
+    int sockfd, new_fd; // Listen to sock_fd, new connection on new_fd
+    struct addrinfo, hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // Client's address information
     socklen_t sin_size;
     struct sigaction sa;
