@@ -158,11 +158,10 @@ void send_file(int *client_socket, char *file_name)
         exit(1);
     }
     printf("Sent file size: %d to Server\n", size_of_file);
-    int num = fread(buffer, 1, 1, file);
-    printf("%d\n", num);
+
     while ((fread(buffer, 1, 1, file)) == 1)
     {
-        sent_data = send(*client_socket, buffer, sent_size, 0);
+        sent_data = send(*client_socket, buffer, sent_size - 1, 0);
         printf("Sent %d bytes to Server\n", sent_data);
         bzero(buffer, sent_size);
         if (sent_data == -1)

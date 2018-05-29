@@ -182,7 +182,7 @@ void accept_clients(int *server_socket, int *client_socket)
             file = fopen("test2.txt", "w");
             while (bytes_received != 0)
             {
-                bytes_received = recv(*client_socket, buffer, receive_size, 0);
+                bytes_received = recv(*client_socket, buffer, receive_size - 1, 0);
                 if (bytes_received == -1)
                 {
                     fprintf(stderr, "Recv() function failed");
