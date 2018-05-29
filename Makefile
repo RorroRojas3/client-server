@@ -13,3 +13,4 @@ server_setup.o: server_setup.h server_setup.c
 	$(GCC) $(CFLAGS) server_setup.h server_setup.c
 clean:
 	rm -rf *.o myServer server_setup.h.gch
+	
