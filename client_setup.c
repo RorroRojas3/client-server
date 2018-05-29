@@ -112,3 +112,69 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     // Frees struct addrinfo "client_info"
     freeaddrinfo(client_info);
 }
+
+void send_file(int *client_socket, char *file_name)
+{
+    // Variable declaration section
+    FILE *file;
+    int size_of_file = 0;
+    int success = -1;
+    int sent_size = 256;
+    int sent_data = -1;
+    char buffer[sent_size];
+    
+    file = fopen(file_name, "r");
+    if (file == NULL)
+    {
+        fprintf(stderr, "fopen() function failed");
+        close(*client_socket);
+        exit(1);
+    }
+
+    // Determine size of file
+    fseek(file, 0, SEEK_END);
+    size_of_file = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    // Sends the name of file to Server
+    success = send(*client_socket, file_name, sent_size - 1, 0);
+    if (success == -1)
+    {
+        fprintf(stderr, "Send() function failed");
+        close(*client_socket);
+        fclose(file);
+        exit(1);
+    }
+    printf("Sent file name: %s to Server\n",file_name);
+
+    // Sends the file size to server
+    sprintf(buffer, "%d", size_of_file);
+    success = send(*client_socket, buffer, sent_size -1, 0);
+    if (success == -1)
+    {
+        fprintf(stderr, "Send() function failed");
+        close(*client_socket);
+        fclose(file);
+        exit(1);
+    }
+    printf("Sent file size: %d to Server\n", size_of_file);
+    int num = fread(buffer, 1, 1, file);
+    printf("%d\n", num);
+    while ((fread(buffer, 1, 1, file)) == 1)
+    {
+        sent_data = send(*client_socket, buffer, sent_size, 0);
+        printf("Sent %d bytes to Server\n", sent_data);
+        bzero(buffer, sent_size);
+        if (sent_data == -1)
+        {
+            fprintf(stderr, "Send() function failed\n");
+            close(*client_socket);
+            fclose(file);
+            exit(1);
+        }   
+        //printf("Sent %d bytes to Server\n", sent_data);
+    }
+    fclose(file);
+    close(*client_socket);
+
+}

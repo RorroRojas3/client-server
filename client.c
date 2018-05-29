@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
     struct addrinfo temp_info, *client_info;
     
     // Checks that user has entered IP address of Server
-    if (argc != 2)
+    if (argc != 3)
     {
-        fprintf(stderr, "Usage: ./program hostname(IP)");
+        fprintf(stderr, "Usage: ./program hostname(IP) filename");
         exit(1);
     }
 
@@ -39,6 +39,6 @@ int main(int argc, char *argv[])
     setup_client(client_info, &client_socket);
 
     // Sends file to server
-    
+    send_file(&client_socket, argv[2]);
 
 }

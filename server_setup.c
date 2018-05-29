@@ -127,8 +127,11 @@ void accept_clients(int *server_socket, int *client_socket)
     int child;
     int success = -1;
     char ip[INET6_ADDRSTRLEN];
-    char message[256];
-    strcpy(message, "Successfull connection to Server");
+    int receive_size = 256;
+    char buffer[receive_size];
+    char file_name[receive_size];
+    int file_size = 0;
+    int bytes_received = -1; 
 
     while(1)
     {
@@ -151,16 +154,53 @@ void accept_clients(int *server_socket, int *client_socket)
         {
             // Sever parent socket no longer needed
             close(*server_socket);
-            // Sends message to Client
-            success = send(*client_socket, message, 255, 0);
+            
+            // Receives name of file
+            success = recv(*client_socket, buffer, receive_size - 1, 0);
             if (success == -1)
             {
-                perror("Send() function failed");
+                fprintf(stderr, "Recv() function failed");
                 close(*client_socket);
                 exit(1);
             }
+            sprintf(file_name, "%s", "./download/");
+            sprintf(file_name, "%s", buffer);
+            printf("Name of file to be received: %s\n", file_name);
+
+            // Receives the file size 
+            success = recv(*client_socket, buffer, receive_size - 1, 0);
+            if (success == -1)
+            {
+                fprintf(stderr, "Recv() function failed");
+                close(*client_socket);
+                exit(1);
+            }
+            file_size = atoi(buffer);
+            printf("Size of file to be received: %d\n", file_size);
+
+            FILE *file;
+            file = fopen("test2.txt", "w");
+            while (bytes_received != 0)
+            {
+                bytes_received = recv(*client_socket, buffer, receive_size, 0);
+                if (bytes_received == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    fclose(file);
+                    exit(1);
+                }
+                printf("Bytes received: %d\n", bytes_received);
+                if(bytes_received != 0)
+                {
+                    fwrite(buffer, 1, 1, file);
+                }
+                bzero(buffer, receive_size);
+                //printf("Bytes received: %d\n", bytes_received);
+            }
             // Closes accepted client socket
             close(*client_socket);
+            fclose(file);
             exit(1);
         }
         // Closes accepted client socket
