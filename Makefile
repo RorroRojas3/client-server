@@ -20,5 +20,5 @@ client_setup.o: client_setup.h client_setup.c
 	$(GCC) $(CFLAGS) client_setup.h client_setup.c
 	
 clean:
-	rm -rf *.o myServer myClient server_setup.h.gch client_setup.gch
+	rm -rf *.o myServer myClient server_setup.h.gch client_setup.h.gch
 	

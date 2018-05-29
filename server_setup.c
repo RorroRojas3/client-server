@@ -179,7 +179,7 @@ void accept_clients(int *server_socket, int *client_socket)
             printf("Size of file to be received: %d\n", file_size);
 
             FILE *file;
-            file = fopen("test2.txt", "w");
+            file = fopen("document2.pdf", "w");
             while (bytes_received != 0)
             {
                 bytes_received = recv(*client_socket, buffer, receive_size - 1, 0);

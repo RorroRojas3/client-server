@@ -123,7 +123,7 @@ void send_file(int *client_socket, char *file_name)
     int sent_data = -1;
     char buffer[sent_size];
     
-    file = fopen(file_name, "r");
+    file = fopen(file_name, "rb");
     if (file == NULL)
     {
         fprintf(stderr, "fopen() function failed");
