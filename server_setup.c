@@ -70,6 +70,8 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
 {
     // Variable Declaration Section
     int success = -1;
+
+    // Creates Server socket
     *server_socket = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
     if (*server_socket == -1)
     {
@@ -77,6 +79,7 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
         exit(1);
     }
 
+    // Binds Server socket to the defined port
     success = bind(*server_socket, server_info->ai_addr, server_info->ai_addrlen);
     if (success == -1)
     {
@@ -85,12 +88,14 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
         exit(1);
     }
 
+    // Frees struct addrinfo "server_info" structure
     freeaddrinfo(server_info);
 
+    // Server set to listen to clients in defined port
     success = listen(*server_socket, max_clients);
     if (success == -1)
     {
-        perror("Listen() functio failed ");
+        perror("Listen() function failed ");
         close(*server_socket);
         exit(1);
     }
@@ -98,31 +103,55 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     printf("Server waiting for Clients!\n");
 }
 
+
+// Getss connectec Client's IP address
+void *get_client_address(struct sockaddr *client)
+{
+    // IPv4 IP address
+    if (client->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in*)client)->sin_addr);
+    }
+    // IPv6 IP address
+    else
+    {
+        return &(((struct sockaddr_in6 *)client)->sin6_addr);
+    }
+}
+
 void accept_clients(int *server_socket, int *client_socket)
 {
     // Variable declaration section
-    socklen_t client_address;
-    struct sockaddr_storage client_address_size;
+    struct sockaddr_storage client_address;
+    socklen_t ip_length;
     int child;
     int success = -1;
+    char ip[INET6_ADDRSTRLEN];
     char message[256];
-    strcpy(message, "Hello world");
+    strcpy(message, "Successfull connection to Server");
 
     while(1)
     {
-        client_address = sizeof(client_address_size);
-
-        *client_socket = accept(*server_socket, (struct sockaddr *)&client_address_size, &client_address);
+        // Server set to accept up to 10 different clients
+        ip_length = sizeof(client_address);
+        *client_socket = accept(*server_socket, (struct sockaddr *)&client_address, &ip_length);
         if (*client_socket == -1)
         {
             perror("Accept() function failed");
             exit(1);
         }
 
+        // Server gets IP address of conneceted client
+        inet_ntop(client_address.ss_family, get_client_address((struct sockaddr *)&client_address), ip, sizeof(ip));
+        printf("Server: Got connection from %s\n", ip);
+
+        // Creates Sever child which will handle the different clients accepted
         child = fork();
         if (child == 0)
         {
+            // Sever parent socket no longer needed
             close(*server_socket);
+            // Sends message to Client
             success = send(*client_socket, message, 255, 0);
             if (success == -1)
             {
@@ -130,9 +159,11 @@ void accept_clients(int *server_socket, int *client_socket)
                 close(*client_socket);
                 exit(1);
             }
+            // Closes accepted client socket
             close(*client_socket);
             exit(1);
         }
+        // Closes accepted client socket
         close(*client_socket);
     }
 }

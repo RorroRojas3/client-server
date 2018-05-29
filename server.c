@@ -22,8 +22,13 @@ int main(int argc, char *argv[])
     int client_socket;
     struct addrinfo temp_info, *server_info;
     
+    // Obtains and sets information regaring Server 
     set_server_info(&temp_info, &server_info, 3, 1, PORTNUMBER);
+
+    // Sets up server
     setup_server(server_info, &server_socket, MAXCLIENTS);
+
+    // Sever starts and accepts up to 10 clients at once
     accept_clients(&server_socket, &client_socket);
 
     return 0;
