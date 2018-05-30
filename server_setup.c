@@ -179,7 +179,7 @@ void accept_clients(int *server_socket, int *client_socket)
             printf("Size of file to be received: %d\n", file_size);
 
             FILE *file;
-            file = fopen("document2.pdf", "w");
+            file = fopen("ins2.deb", "wb");
             while (bytes_received != 0)
             {
                 bytes_received = recv(*client_socket, buffer, receive_size - 1, 0);
@@ -190,11 +190,13 @@ void accept_clients(int *server_socket, int *client_socket)
                     fclose(file);
                     exit(1);
                 }
-                printf("Bytes received: %d\n", bytes_received);
-                if(bytes_received != 0)
+                
+                if (bytes_received != 0)
                 {
-                    fwrite(buffer, 1, 1, file);
+                    printf("Bytes received: %d\n", bytes_received);
+                    fwrite(buffer, sizeof(char), bytes_received, file);
                 }
+                
                 bzero(buffer, receive_size);
                 //printf("Bytes received: %d\n", bytes_received);
             }
