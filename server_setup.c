@@ -130,8 +130,10 @@ void accept_clients(int *server_socket, int *client_socket)
     int receive_size = 256;
     char buffer[receive_size];
     char file_name[receive_size];
+    char path[receive_size];
     int file_size = 0;
     int bytes_received = -1; 
+    int total_bytes = 0;
 
     while(1)
     {
@@ -163,9 +165,11 @@ void accept_clients(int *server_socket, int *client_socket)
                 close(*client_socket);
                 exit(1);
             }
-            sprintf(file_name, "%s", "./download/");
             sprintf(file_name, "%s", buffer);
             printf("Name of file to be received: %s\n", file_name);
+
+            sprintf(path, "./received_files/%s", file_name);
+            printf("Path to Received file: %s\n", path);
 
             // Receives the file size 
             success = recv(*client_socket, buffer, receive_size - 1, 0);
@@ -179,7 +183,7 @@ void accept_clients(int *server_socket, int *client_socket)
             printf("Size of file to be received: %d\n", file_size);
 
             FILE *file;
-            file = fopen("ins2.deb", "wb");
+            file = fopen(path, "wb");
             while (bytes_received != 0)
             {
                 bytes_received = recv(*client_socket, buffer, receive_size - 1, 0);
@@ -193,7 +197,7 @@ void accept_clients(int *server_socket, int *client_socket)
                 
                 if (bytes_received != 0)
                 {
-                    printf("Bytes received: %d\n", bytes_received);
+                    total_bytes += bytes_received;
                     fwrite(buffer, sizeof(char), bytes_received, file);
                 }
                 
@@ -201,6 +205,8 @@ void accept_clients(int *server_socket, int *client_socket)
                 //printf("Bytes received: %d\n", bytes_received);
             }
             // Closes accepted client socket
+            printf("Bytes received: %d\n", total_bytes);
+            printf("Successfull file transmission! Client left!\n");
             close(*client_socket);
             fclose(file);
             exit(1);

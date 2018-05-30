@@ -122,6 +122,7 @@ void send_file(int *client_socket, char *file_name)
     int sent_size = 256;
     int sent_data = -1;
     char buffer[sent_size];
+    int total_bytes = 0;
     
     file = fopen(file_name, "rb");
     if (file == NULL)
@@ -171,8 +172,7 @@ void send_file(int *client_socket, char *file_name)
         {
             sent_data = send(*client_socket, buffer, n, 0);
         }
-        printf("Sent %d bytes to Server\n", sent_data);
-        printf("Read: %d\n", n);
+        total_bytes += sent_data;
         bzero(buffer, sent_size);
         if (sent_data == -1)
         {
@@ -183,6 +183,8 @@ void send_file(int *client_socket, char *file_name)
         }   
         //printf("Sent %d bytes to Server\n", sent_data);
     }
+    printf("Total bytes sent: %d\n", total_bytes);
+    printf("File sent successfully! Connection to Server has ended.\n");
     fclose(file);
     close(*client_socket);
 
