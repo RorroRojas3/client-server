@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 	char buffer[1024];
 	char line[1024];
 	char only_directory[1024];
+	char command[2];
 	int length = 0;
 	int c1;
 	int count = 0;
@@ -57,6 +58,13 @@ int main(int argc, char *argv[])
 			sscanf(line, "%s", buffer);
 			sprintf(path, "%s/%s", path, buffer);
 			printf("Path: %s\n", path);
+			printf("Save on this directory[Y/N]?: ");
+			fgets(line, sizeof(line), stdin);
+			sscanf(line, "%s", command);
+			if (strcmp(command, "Y") == 0)
+			{
+				break;
+			}
 		}
 		else
 		{
@@ -66,7 +74,7 @@ int main(int argc, char *argv[])
 	
 	
 	// Create a directory, need "<sys/stat.h>
-	mkdir("./example", 0700);
+	//mkdir()
 	closedir(directory);
 	return 0;
 }
