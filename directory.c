@@ -8,6 +8,7 @@
 
 int main(int argc, char *argv[])
 {
+	// Variable Declaration Section
 	DIR *directory;
 	struct dirent *directory_pointer;
 	char path[1024];
@@ -18,16 +19,24 @@ int main(int argc, char *argv[])
 	int length = 0;
 	int c1;
 	int count = 0;
+
+	// Clears all garbage from string variables
 	memset(path, '\0', sizeof(path));
 	memset(only_directory, '\0', sizeof(only_directory));
+
+	// Gets the current directory
 	getcwd(only_directory, sizeof(only_directory));
 	length = strlen(only_directory);
-	printf("%s\n", only_directory);
-	printf("%d\n", length);
+	//printf("%s\n", only_directory);
+	//printf("%d\n", length);
 	strcpy(path, only_directory);
 
 	while(1)
 	{
+		// Checks if the current directory can be accessed or not
+		chdir(path);
+		getcwd(path, sizeof(path));
+		printf("Current Path: %s\n", path);
 		for (c1 = 0; c1 < length; c1++)
 		{
 			if (path[c1] == only_directory[c1])
@@ -35,6 +44,7 @@ int main(int argc, char *argv[])
 				count++;
 			}
 		}
+		printf("Count: %d, Length: %d\n", count, length);
 		if (count == length)
 		{
 			count = 0;
@@ -44,7 +54,7 @@ int main(int argc, char *argv[])
 				exit(1);
 			}
 
-			// Search for directory
+			// Displays the directories in current folder
 			while ((directory_pointer = readdir(directory)) != NULL)
 			{
 				if (directory_pointer->d_type == DT_DIR)
@@ -53,6 +63,7 @@ int main(int argc, char *argv[])
 				}
 			}
 			
+			// Gets user input
 			printf("Enter directory to go next: ");
 			fgets(line, sizeof(line), stdin);
 			sscanf(line, "%s", buffer);
@@ -68,6 +79,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			printf("Not allowed to access!\n");
 			break;
 		}
 	}
