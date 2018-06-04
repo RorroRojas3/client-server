@@ -33,10 +33,14 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{
-		// Checks if the current directory can be accessed or not
+		// Changes current working directory
 		chdir(path);
+		// Puts the current directory path to variable "path"
 		getcwd(path, sizeof(path));
+		// Prints the current path
 		printf("Current Path: %s\n", path);
+
+		// Checks if the new path can be accessed
 		for (c1 = 0; c1 < length; c1++)
 		{
 			if (path[c1] == only_directory[c1])
@@ -44,7 +48,7 @@ int main(int argc, char *argv[])
 				count++;
 			}
 		}
-		printf("Count: %d, Length: %d\n", count, length);
+		// Path can be accessed
 		if (count == length)
 		{
 			count = 0;
@@ -62,13 +66,6 @@ int main(int argc, char *argv[])
 					printf("%s\n", directory_pointer->d_name);
 				}
 			}
-			
-			// Gets user input
-			printf("Enter directory to go next: ");
-			fgets(line, sizeof(line), stdin);
-			sscanf(line, "%s", buffer);
-			sprintf(path, "%s/%s", path, buffer);
-			printf("Path: %s\n", path);
 			printf("Save on this directory[Y/N]?: ");
 			fgets(line, sizeof(line), stdin);
 			sscanf(line, "%s", command);
@@ -76,11 +73,22 @@ int main(int argc, char *argv[])
 			{
 				break;
 			}
+			else
+			{
+				// Gets user input
+				printf("Enter directory to go next: ");
+				fgets(line, sizeof(line), stdin);
+				sscanf(line, "%s", buffer);
+				sprintf(path, "%s/%s", path, buffer);
+			}
 		}
+		// Path cannot be acccesed
 		else
 		{
 			printf("Not allowed to access!\n");
-			break;
+			// Changes current path to original path
+			strcpy(path, only_directory);
+			count = 0;
 		}
 	}
 	
