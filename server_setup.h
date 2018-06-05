@@ -18,4 +18,7 @@ void accept_clients(int *, int *);
 // Gets connectec Client's IP address
 void *get_client_address(struct sockaddr *);
 
+// Displays the restricted directories
+void display_directories(char *);
+
 #endif // _SERVER_SETUP_

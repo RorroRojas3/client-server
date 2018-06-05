@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <dirent.h>
 #include "server_setup.h"
 
 void set_server_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, int type, char *port_number)
@@ -103,6 +104,121 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     printf("Server waiting for Clients!\n");
 }
 
+void display_directories(char *path)
+{
+    // Variable Declaration Section
+	DIR *directory;
+	struct dirent *directory_pointer;
+    char input[1024];
+    char original_directory[1024];
+    char input_command[2];
+    int original_path_length = 0;
+    int c1 = 0;
+    int verify = 0;
+
+    // Clear garbage from character strings
+    memset(input, '\0', sizeof(input));
+    memset(input_command, '\0', sizeof(input_command));
+    memset(original_directory, '\0', sizeof(original_directory));
+
+    // Obtain current working directory which will be the restricted
+    // directory in which files can be stored at
+    getcwd(original_directory, sizeof(original_directory));
+    original_path_length = strlen(original_directory);
+    strcpy(path, original_directory);
+    
+    // Infinite loop that will be broken of when the user chooses
+    // a directory
+    while(1)
+    {
+        // Changes the current working directory
+        chdir(path);
+        // Obtains the new current directory and stores it on
+        // variable "path"
+        getcwd(path, sizeof(path));
+        
+        // Checks if the new path can be acccessed for security reasons
+        for (c1 = 0; c1 < original_path_length; c1++)
+        {
+            if (path[c1] == original_directory[c1])
+            {
+                verify++;
+            }
+        }
+
+        // If path can be accessed
+        if (verify == original_path_length)
+        {
+            // Resets value of verification variable
+            verify = 0;
+
+            directory = opendir(path);
+            if (directory ==  NULL)
+            {
+                perror("Cannot open directory");
+                exit(1);
+            }
+
+            // Prints the directories inside the default directory
+            while((directory_pointer = readdir(directory)) != NULL)
+            {
+                if (directory_pointer->d_type == DT_DIR)
+                {
+                    printf("%s\n", directory_pointer->d_name);
+                }
+            }
+
+            // Asks the user if to chose current directory to save file
+            while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
+            {
+                printf("Save file on this directory? [Y/N]: ");
+                fgets(input, sizeof(input), stdin);
+                sscanf(input, "%s", input_command);
+            }
+
+            // Program will proceed and return the current path
+            if (strcmp(input_command, "Y") == 0)
+            {
+                break;
+            }
+            // Asks the user to create directory in currrent folder or 
+            // go to next directory available
+            else
+            {
+                memset(input, '\0', sizeof(input));
+                memset(input_command, '\0', sizeof(input_command));
+                while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
+                {
+                    printf("Create directory in current directory? [Y/N]: ");
+                    fgets(input, sizeof(input), stdin);
+                    sscanf(input, "%s", input_command);
+                }
+                if (strcmp(input_command, "Y") == 0)
+                {
+                    // mkdir()
+                    break;
+                }
+                else
+                {
+                    memset(input, '\0', sizeof(input));
+                    memset(path, '\0', sizeof(path));
+                    printf("Enter directory to go next: ");
+                    fgets(input, sizeof(input), stdin);
+                    sscanf(input, "%s", path);
+                }
+                
+
+            }
+
+        }
+        else
+        {
+            printf("Directory not allowed for access\n");
+            strcpy(path, original_directory);
+            verify = 0;
+        }
+    }
+}
 
 // Getss connectec Client's IP address
 void *get_client_address(struct sockaddr *client)
@@ -167,6 +283,8 @@ void accept_clients(int *server_socket, int *client_socket)
             }
             sprintf(file_name, "%s", buffer);
             printf("Name of file to be received: %s\n", file_name);
+
+            display_directories(path);
 
             sprintf(path, "./received_files/%s", file_name);
             printf("Path to Received file: %s\n", path);
