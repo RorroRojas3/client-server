@@ -259,11 +259,26 @@ void display_directories(char *path, int *client_socket)
                 // Asks user to go to another directory
                 else
                 {
+                    memset(buffer, '\0', sizeof(buffer));
                     memset(input, '\0', sizeof(input));
-                    memset(path, '\0', sizeof(buffer));
-                    printf("Enter directory to go next: ");
-                    fgets(input, sizeof(input), stdin);
-                    sscanf(input, "%s", buffer);
+                    strcpy(buffer, "Enter the name of directory you want to go: ");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+
+                    memset(buffer, '\0', sizeof(buffer));
+                    received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (received_bytes == -1)
+                    {
+                        fprintf(stderr, "Recv() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+                    strcpy(input, buffer);
                     sprintf(path, "%s/%s", path, buffer);
                 }
             }
