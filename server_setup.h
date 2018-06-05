@@ -19,6 +19,6 @@ void accept_clients(int *, int *);
 void *get_client_address(struct sockaddr *);
 
 // Displays the restricted directories
-void display_directories(char *);
+void display_directories(char *, int *);
 
 #endif // _SERVER_SETUP_

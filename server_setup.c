@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include "server_setup.h"
 
@@ -104,17 +105,22 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     printf("Server waiting for Clients!\n");
 }
 
-void display_directories(char *path)
+// Sends the directory to Client
+void display_directories(char *path, int *client_socket)
 {
     // Variable Declaration Section
 	DIR *directory;
 	struct dirent *directory_pointer;
     char input[1024];
     char original_directory[1024];
+    char buffer[1024];
     char input_command[2];
     int original_path_length = 0;
     int c1 = 0;
     int verify = 0;
+    int sent_bytes = -1;
+    int received_bytes = -1;
+    int success = -1;
 
     // Clear garbage from character strings
     memset(input, '\0', sizeof(input));
@@ -164,16 +170,42 @@ void display_directories(char *path)
             {
                 if (directory_pointer->d_type == DT_DIR)
                 {
-                    printf("%s\n", directory_pointer->d_name);
+                    //printf("%s\n", directory_pointer->d_name);
+                    sent_bytes = send(*client_socket, directory_pointer->d_name, sizeof(directory_pointer->d_name), 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
                 }
             }
 
             // Asks the user if to chose current directory to save file
             while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
             {
-                printf("Save file on this directory? [Y/N]: ");
-                fgets(input, sizeof(input), stdin);
-                sscanf(input, "%s", input_command);
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Save file on this directory? [Y/N]");
+                //printf("Save file on this directory? [Y/N]: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer), 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                received_bytes = recv(*client_socket, buffer, 1024 - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input_command, buffer);
+                //fgets(input, sizeof(input), stdin);
+                //<sscanf(input, "%s", input_command);
             }
 
             // Program will proceed and return the current path
@@ -185,31 +217,56 @@ void display_directories(char *path)
             // go to next directory available
             else
             {
-                memset(input, '\0', sizeof(input));
-                memset(input_command, '\0', sizeof(input_command));
+                //memset(input, '\0', sizeof(input));
+                //memset(buffer, '\0', sizeof(buffer));
+                //memset(input_command, '\0', sizeof(input_command));
                 while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
                 {
-                    printf("Create directory in current directory? [Y/N]: ");
-                    fgets(input, sizeof(input), stdin);
-                    sscanf(input, "%s", input_command);
+                    memset(buffer, '\0', sizeof(buffer));
+                    memset(input_command, '\0', sizeof(input_command));
+                    strcpy(buffer, "Create directory in current directory? [Y/N]: ");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+
+                    memset(buffer, '\0', sizeof(buffer));
+                    received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (received_bytes == -1)
+                    {
+                        fprintf(stderr, "Recv() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+                    strcpy(input_command, buffer);
+                    //fgets(input, sizeof(input), stdin);
+                    //sscanf(input, "%s", input_command);
                 }
+
+                // Creates directory if user chose to
                 if (strcmp(input_command, "Y") == 0)
                 {
-                    // mkdir()
-                    break;
+                    success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                    if (success == -1)
+                    {
+                        perror("Mkdir() function failed");
+                        exit(1);
+                    }
                 }
+                // Asks user to go to another directory
                 else
                 {
                     memset(input, '\0', sizeof(input));
-                    memset(path, '\0', sizeof(path));
+                    memset(path, '\0', sizeof(buffer));
                     printf("Enter directory to go next: ");
                     fgets(input, sizeof(input), stdin);
-                    sscanf(input, "%s", path);
+                    sscanf(input, "%s", buffer);
+                    sprintf(path, "%s/%s", path, buffer);
                 }
-                
-
             }
-
         }
         else
         {
@@ -284,7 +341,7 @@ void accept_clients(int *server_socket, int *client_socket)
             sprintf(file_name, "%s", buffer);
             printf("Name of file to be received: %s\n", file_name);
 
-            display_directories(path);
+            display_directories(path, client_socket);
 
             sprintf(path, "./received_files/%s", file_name);
             printf("Path to Received file: %s\n", path);

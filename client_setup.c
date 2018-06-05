@@ -166,7 +166,7 @@ void send_file(int *client_socket, char *file_name)
         n = fread(buffer, sizeof(char), sent_size - 1, file);
         if (n > 256)
         {
-            sent_data = send(*client_socket, buffer, 255, 0);
+            sent_data = send(*client_socket, buffer, sent_size - 1, 0);
         }
         else
         {
