@@ -16,4 +16,6 @@ void get_server_address(struct addrinfo *);
 
 void send_file(int *, char *);
 
+void set_directory(int *);
+
 #endif // _CLIENT_SETUP_H

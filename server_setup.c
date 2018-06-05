@@ -139,6 +139,7 @@ void display_directories(char *path, int *client_socket)
     {
         // Changes the current working directory
         chdir(path);
+
         // Obtains the new current directory and stores it on
         // variable "path"
         getcwd(path, sizeof(path));
@@ -170,8 +171,7 @@ void display_directories(char *path, int *client_socket)
             {
                 if (directory_pointer->d_type == DT_DIR)
                 {
-                    //printf("%s\n", directory_pointer->d_name);
-                    sent_bytes = send(*client_socket, directory_pointer->d_name, sizeof(directory_pointer->d_name), 0);
+                    sent_bytes = send(*client_socket, directory_pointer->d_name, 1023, 0);
                     if (sent_bytes == -1)
                     {
                         fprintf(stderr, "Send() function failed");
@@ -186,8 +186,7 @@ void display_directories(char *path, int *client_socket)
             {
                 memset(buffer, '\0', sizeof(buffer));
                 strcpy(buffer, "Save file on this directory? [Y/N]");
-                //printf("Save file on this directory? [Y/N]: ");
-                sent_bytes = send(*client_socket, buffer, sizeof(buffer), 0);
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
                 if (sent_bytes == -1)
                 {
                     fprintf(stderr, "Send() function failed");
@@ -204,8 +203,6 @@ void display_directories(char *path, int *client_socket)
                     exit(1);
                 }
                 strcpy(input_command, buffer);
-                //fgets(input, sizeof(input), stdin);
-                //<sscanf(input, "%s", input_command);
             }
 
             // Program will proceed and return the current path
@@ -213,13 +210,11 @@ void display_directories(char *path, int *client_socket)
             {
                 break;
             }
+
             // Asks the user to create directory in currrent folder or 
             // go to next directory available
             else
             {
-                //memset(input, '\0', sizeof(input));
-                //memset(buffer, '\0', sizeof(buffer));
-                //memset(input_command, '\0', sizeof(input_command));
                 while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
                 {
                     memset(buffer, '\0', sizeof(buffer));
@@ -242,13 +237,24 @@ void display_directories(char *path, int *client_socket)
                         exit(1);
                     }
                     strcpy(input_command, buffer);
-                    //fgets(input, sizeof(input), stdin);
-                    //sscanf(input, "%s", input_command);
                 }
 
                 // Creates directory if user chose to
                 if (strcmp(input_command, "Y") == 0)
                 {
+                    char directory_name[1024];
+                    memset(buffer, '\0', sizeof(buffer));
+                    strcpy(buffer, "Enter name of directory: ");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+                    strcpy(directory_name, buffer);
+                    sprintf(path, "%s/%s", path, directory_name);
+
                     success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
                     if (success == -1)
                     {

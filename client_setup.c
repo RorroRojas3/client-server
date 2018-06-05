@@ -113,6 +113,33 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     freeaddrinfo(client_info);
 }
 
+void set_directory(int *client_socket)
+{
+    int received_bytes = 1;
+    char buffer[1024];
+    char message[1024];
+
+    while(1)
+    {
+        while(received_bytes > 0)
+        {
+            received_bytes = recv(*client_socket, buffer, 1023, 0);
+            if (received_bytes == -1)
+            {
+                fprintf(stderr, "Recv() function failed\n");
+                close(*client_socket);
+                exit(1);
+            }
+            else if(received_bytes > 0)
+            {
+                strcpy(message, buffer);
+                printf("Received bytes: %d\n", received_bytes);
+                printf("Server sent: %s\n", message);
+            }
+        }
+    }
+}
+
 void send_file(int *client_socket, char *file_name)
 {
     // Variable declaration section
@@ -147,6 +174,8 @@ void send_file(int *client_socket, char *file_name)
         exit(1);
     }
     printf("Sent file name: %s to Server\n",file_name);
+
+    set_directory(client_socket);
 
     // Sends the file size to server
     sprintf(buffer, "%d", size_of_file);
