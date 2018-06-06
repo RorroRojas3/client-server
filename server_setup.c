@@ -182,7 +182,7 @@ void display_directories(char *path, int *client_socket)
             }
 
             // Asks the user if to chose current directory to save file
-            while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
+            while((strcmp(input_command, "Y") != 0) && (strcmp(input_command, "N") != 0))
             {
                 memset(buffer, '\0', sizeof(buffer));
                 strcpy(buffer, "Save file on this directory? [Y/N]");
@@ -190,6 +190,17 @@ void display_directories(char *path, int *client_socket)
                 if (sent_bytes == -1)
                 {
                     fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Server stops sending data
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == 1)
+                {
+                    fprintf(stderr, "Send() function failed\n");
                     close(*client_socket);
                     exit(1);
                 }

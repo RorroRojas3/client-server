@@ -116,12 +116,13 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
 void set_directory(int *client_socket)
 {
     int received_bytes = 1;
+    int sent_bytes = -1;
     char buffer[1024];
     char message[1024];
 
     while(1)
     {
-        while(received_bytes > 0)
+        while(1)
         {
             received_bytes = recv(*client_socket, buffer, 1023, 0);
             if (received_bytes == -1)
@@ -133,9 +134,29 @@ void set_directory(int *client_socket)
             else if(received_bytes > 0)
             {
                 strcpy(message, buffer);
-                printf("Received bytes: %d\n", received_bytes);
-                printf("Server sent: %s\n", message);
+                if(strcmp(message, "Done") == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    printf("%s\n", message);
+                }
+                
             }
+        }
+
+        memset(buffer, '\0', sizeof(buffer));
+        memset(message, '\0', sizeof(message));
+        printf("Enter options: ");
+        fgets(buffer, sizeof(buffer) -1, stdin);
+        sscanf(buffer, "%s", message);
+        sent_bytes = send(*client_socket, message, sizeof(message) - 1, 0);
+        if (sent_bytes == -1)
+        {
+            fprintf(stderr, "Send() function failed\n");
+            close(*client_socket);
+            exit(1);
         }
     }
 }
