@@ -226,7 +226,7 @@ void display_directories(char *path, int *client_socket)
             // go to next directory available
             else
             {
-                while((strcmp(input_command, "Y") != 0) || (strcmp(input_command, "N") != 0))
+                while((strcmp(input_command, "Y") != 0) && (strcmp(input_command, "N") != 0))
                 {
                     memset(buffer, '\0', sizeof(buffer));
                     memset(input_command, '\0', sizeof(input_command));
@@ -235,6 +235,17 @@ void display_directories(char *path, int *client_socket)
                     if (sent_bytes == -1)
                     {
                         fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+
+                    // Server stops sending data
+                    memset(buffer, '\0', sizeof(buffer));
+                    strcpy(buffer, "Done");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == 1)
+                    {
+                        fprintf(stderr, "Send() function failed\n");
                         close(*client_socket);
                         exit(1);
                     }
@@ -287,7 +298,19 @@ void display_directories(char *path, int *client_socket)
                         exit(1);
                     }
 
+                    // Server stops sending data
                     memset(buffer, '\0', sizeof(buffer));
+                    strcpy(buffer, "Done");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == 1)
+                    {
+                        fprintf(stderr, "Send() function failed\n");
+                        close(*client_socket);
+                        exit(1);
+                    }
+
+                    memset(buffer, '\0', sizeof(buffer));
+                    memset(input, '\0', sizeof(input));
                     received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
                     if (received_bytes == -1)
                     {
@@ -296,8 +319,9 @@ void display_directories(char *path, int *client_socket)
                         exit(1);
                     }
                     strcpy(input, buffer);
-                    sprintf(path, "%s/%s", path, buffer);
+                    sprintf(path, "%s/%s", path, input);
                 }
+                memset(input_command, '\0', sizeof(input_command));
             }
         }
         else
@@ -376,7 +400,7 @@ void accept_clients(int *server_socket, int *client_socket)
             display_directories(path, client_socket);
 
             sprintf(path, "./received_files/%s", file_name);
-            printf("Path to Received file: %s\n", path);
+            //printf("Path to Received file: %s\n", path);
 
             // Receives the file size 
             success = recv(*client_socket, buffer, receive_size - 1, 0);

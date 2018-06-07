@@ -138,6 +138,10 @@ void set_directory(int *client_socket)
                 {
                     break;
                 }
+                else if (strcmp(message, "Path set") == 0)
+                {
+                    break;
+                }
                 else
                 {
                     printf("%s\n", message);
@@ -146,17 +150,24 @@ void set_directory(int *client_socket)
             }
         }
 
-        memset(buffer, '\0', sizeof(buffer));
-        memset(message, '\0', sizeof(message));
-        printf("Enter options: ");
-        fgets(buffer, sizeof(buffer) -1, stdin);
-        sscanf(buffer, "%s", message);
-        sent_bytes = send(*client_socket, message, sizeof(message) - 1, 0);
-        if (sent_bytes == -1)
+        if (strcmp(message, "Path set") != 0)
         {
-            fprintf(stderr, "Send() function failed\n");
-            close(*client_socket);
-            exit(1);
+            memset(buffer, '\0', sizeof(buffer));
+            memset(message, '\0', sizeof(message));
+            printf("Enter options: ");
+            fgets(buffer, sizeof(buffer) -1, stdin);
+            sscanf(buffer, "%s", message);
+            sent_bytes = send(*client_socket, message, sizeof(message) - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed\n");
+                close(*client_socket);
+                exit(1);
+            }
+        }
+        else
+        {
+            break;
         }
     }
 }
