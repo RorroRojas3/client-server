@@ -113,6 +113,8 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     freeaddrinfo(client_info);
 }
 
+// Function lets the user set the directory in which file will be saved
+// User will be allowed to create directories and save the files in directory preferred
 void set_directory(int *client_socket)
 {
     int received_bytes = 1;
@@ -122,6 +124,9 @@ void set_directory(int *client_socket)
 
     while(1)
     {
+        // Infinite loop which will receive messages from the Server and
+        // display it to the user and user allowed to sent a reponse
+        // to server based on what Server asks
         while(1)
         {
             received_bytes = recv(*client_socket, buffer, 1023, 0);
@@ -150,11 +155,13 @@ void set_directory(int *client_socket)
             }
         }
 
+        // If the directory has not been set, the user will be allowed to send 
+        // command to server regarding option on creation/selection of directory
         if (strcmp(message, "Path set") != 0)
         {
             memset(buffer, '\0', sizeof(buffer));
             memset(message, '\0', sizeof(message));
-            printf("Enter options: ");
+            printf("Enter option: ");
             fgets(buffer, sizeof(buffer) -1, stdin);
             sscanf(buffer, "%s", message);
             sent_bytes = send(*client_socket, message, sizeof(message) - 1, 0);
@@ -165,6 +172,7 @@ void set_directory(int *client_socket)
                 exit(1);
             }
         }
+        // If path has been set for file to be transferred, breaks from infinite while loop
         else
         {
             break;
