@@ -180,8 +180,8 @@ void display_directories(char *path, int *client_socket)
             // Prints the directories inside the default directory
             while((directory_pointer = readdir(directory)) != NULL)
             {
-                //if (directory_pointer->d_type == DT_DIR)
-                //{
+                if ((directory_pointer->d_type == DT_DIR) || directory_pointer->d_type == DT_REG)
+                {
                     sent_bytes = send(*client_socket, directory_pointer->d_name, 1023, 0);
                     if (sent_bytes == -1)
                     {
@@ -189,7 +189,7 @@ void display_directories(char *path, int *client_socket)
                         close(*client_socket);
                         exit(1);
                     }
-               // }
+               }
             }
 
             // Asks the user if to chose current directory to save file
@@ -502,7 +502,107 @@ void accept_clients(int *server_socket, int *client_socket)
     }
 }
 
+// Deletes a file/directory 
 void delete_file(int *client_socket, char *file_name)
 {
+    // Variable Declaration Section
+	DIR *directory;
+	struct dirent *directory_pointer;
+    char input[1024];
+    char original_directory[1024];
+    char buffer[1024];
+    char input_command[2];
+    int original_path_length = 0;
+    int c1 = 0;
+    int verify = 0;
+    int sent_bytes = -1;
+    int received_bytes = -1;
+    int success = -1;
+
+    // Clear garbage from character strings
+    memset(input, '\0', sizeof(input));
+    memset(input_command, '\0', sizeof(input_command));
+    memset(original_directory, '\0', sizeof(original_directory));
+    memset(buffer, '\0', sizeof(buffer));
+
+    // Obtain current working directory which will be the restricted
+    // directory in which files can be stored at
+    getcwd(original_directory, sizeof(original_directory));
+    original_path_length = strlen(original_directory);
+    strcpy(path, original_directory);
     
+    // Infinite loop that will be broken of when the user chooses
+    // a directory
+    while(1)
+    {
+        // Changes the current working directory
+        chdir(path);
+
+        // Obtains the new current directory and stores it on
+        // variable "path"
+        getcwd(buffer, sizeof(buffer));
+        printf("Original: %s\n", original_directory);
+        printf("Current directory: %s\n", buffer);
+        
+        // Checks if the new path can be acccessed for security reasons
+        for (c1 = 0; c1 < original_path_length; c1++)
+        {
+            if (buffer[c1] == original_directory[c1])
+            {
+                verify++;
+            }
+        }
+
+        // If path can be accessed
+        if (verify == original_path_length)
+        {
+            // Resets value of verification variable
+            verify = 0;
+
+            directory = opendir(path);
+            if (directory ==  NULL)
+            {
+                perror("Cannot open directory");
+                exit(1);
+            }
+
+            strcpy(buffer, "\nFiles/Directories of current location:");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                exit(1);
+            }
+            // Prints the directories inside the default directory
+            while((directory_pointer = readdir(directory)) != NULL)
+            {
+                if ((directory_pointer->d_type == DT_DIR) || (directory_pointer->d_type == DT_REG))
+                {
+                    sent_bytes = send(*client_socket, directory_pointer->d_name, 1023, 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+               }
+            }
+       }
+       else
+       {
+            memset(buffer, '\0', sizeof(buffer));
+            strcpy(buffer, "\nDirectory cannot be accessed!");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) -1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed!");
+                close(*client_socket);
+                exit(1);
+            }
+            strcpy(path, original_directory);
+            verify = 0;
+       }
+         
 }
+
