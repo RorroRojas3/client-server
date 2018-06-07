@@ -22,6 +22,6 @@ void *get_client_address(struct sockaddr *);
 void display_directories(char *, int *);
 
 // Deletes files/directory
-void delete_file(int *, char *);
+void delete_file(int *);
 
 #endif // _SERVER_SETUP_

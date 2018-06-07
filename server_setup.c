@@ -14,6 +14,8 @@
 #include <dirent.h>
 #include "server_setup.h"
 
+#define MAXSIZE 1024
+
 void set_server_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, int type, char *port_number)
 {
     // Variable Declaration Section
@@ -111,9 +113,9 @@ void display_directories(char *path, int *client_socket)
     // Variable Declaration Section
 	DIR *directory;
 	struct dirent *directory_pointer;
-    char input[1024];
-    char original_directory[1024];
-    char buffer[1024];
+    char input[MAXSIZE];
+    char original_directory[MAXSIZE];
+    char buffer[MAXSIZE];
     char input_command[2];
     int original_path_length = 0;
     int c1 = 0;
@@ -144,9 +146,7 @@ void display_directories(char *path, int *client_socket)
         // Obtains the new current directory and stores it on
         // variable "path"
         getcwd(buffer, sizeof(buffer));
-        printf("Original: %s\n", original_directory);
-        printf("Current directory: %s\n", buffer);
-        
+
         // Checks if the new path can be acccessed for security reasons
         for (c1 = 0; c1 < original_path_length; c1++)
         {
@@ -217,7 +217,7 @@ void display_directories(char *path, int *client_socket)
                 }
 
                 memset(buffer, '\0', sizeof(buffer));
-                received_bytes = recv(*client_socket, buffer, 1024 - 1, 0);
+                received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
                 if (received_bytes == -1)
                 {
                     fprintf(stderr, "Recv() function failed");
@@ -286,7 +286,7 @@ void display_directories(char *path, int *client_socket)
                 // Creates directory if user chose to
                 if (strcmp(input_command, "Y") == 0)
                 {
-                    char directory_name[1024];
+                    char directory_name[MAXSIZE];
                     memset(buffer, '\0', sizeof(buffer));
                     strcpy(buffer, "Enter name of directory: ");
                     sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
@@ -408,16 +408,16 @@ void accept_clients(int *server_socket, int *client_socket)
     // Variable declaration section
     struct sockaddr_storage client_address;
     socklen_t ip_length;
-    int child;
-    int success = -1;
     char ip[INET6_ADDRSTRLEN];
-    int receive_size = 256;
-    char buffer[receive_size];
-    char file_name[receive_size];
-    char path[receive_size];
+    char buffer[MAXSIZE];
+    char file_name[MAXSIZE];
+    char path[MAXSIZE];
+    int child = -1;
     int file_size = 0;
-    int bytes_received = -1; 
+    int received_bytes = -1; 
+    int sent_bytes = -1;
     int total_bytes = 0;
+    int received_input = 0;
 
     while(1)
     {
@@ -441,59 +441,90 @@ void accept_clients(int *server_socket, int *client_socket)
             // Sever parent socket no longer needed
             close(*server_socket);
             
-            // Receives name of file
-            success = recv(*client_socket, buffer, receive_size - 1, 0);
-            if (success == -1)
+            memset(buffer, '\0', sizeof(buffer));
+            strcpy(buffer, "\nSelect an option:\n1) Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
+            sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
+            if (sent_bytes == -1)
             {
-                fprintf(stderr, "Recv() function failed");
+                fprintf(stderr, "Send() function failed");
                 close(*client_socket);
                 exit(1);
-            }
-            sprintf(file_name, "%s", buffer);
-            printf("Name of file to be received: %s\n", file_name);
+            } 
 
-            display_directories(path, client_socket);
 
-            sprintf(path, "%s/%s", path, file_name);
-
-            // Receives the file size 
-            success = recv(*client_socket, buffer, receive_size - 1, 0);
-            if (success == -1)
+            // Receive a file
+            if (received_input == 1)
             {
-                fprintf(stderr, "Recv() function failed");
-                close(*client_socket);
-                exit(1);
-            }
-            file_size = atoi(buffer);
-            printf("Size of file to be received: %d\n", file_size);
-
-            FILE *file;
-            file = fopen(path, "wb");
-            while (bytes_received != 0)
-            {
-                bytes_received = recv(*client_socket, buffer, receive_size - 1, 0);
-                if (bytes_received == -1)
+                // Receives name of file
+                received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+                if (received_bytes == -1)
                 {
                     fprintf(stderr, "Recv() function failed");
                     close(*client_socket);
-                    fclose(file);
                     exit(1);
                 }
-                
-                if (bytes_received != 0)
+                sprintf(file_name, "%s", buffer);
+                printf("Name of file to be received: %s\n", file_name);
+
+                display_directories(path, client_socket);
+
+                sprintf(path, "%s/%s", path, file_name);
+
+                // Receives the file size 
+                received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+                if (received_bytes == -1)
                 {
-                    total_bytes += bytes_received;
-                    fwrite(buffer, sizeof(char), bytes_received, file);
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
                 }
-                
-                bzero(buffer, receive_size);
+                file_size = atoi(buffer);
+                printf("Size of file to be received: %d\n", file_size);
+
+                FILE *file;
+                file = fopen(path, "wb");
+                while (received_bytes != 0)
+                {
+                    received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+                    if (received_bytes == -1)
+                    {
+                        fprintf(stderr, "Recv() function failed");
+                        close(*client_socket);
+                        fclose(file);
+                        exit(1);
+                    }
+                    
+                    if (received_bytes != 0)
+                    {
+                        total_bytes += received_bytes;
+                        fwrite(buffer, sizeof(char), received_bytes, file);
+                    }
+                    
+                    bzero(buffer, MAXSIZE);
+                }
+                // Closes accepted client socket
+                printf("Bytes received: %d\n", total_bytes);
+                printf("Successfull file transmission! Client left!\n");
+                close(*client_socket);
+                fclose(file);
+                exit(1);
             }
-            // Closes accepted client socket
-            printf("Bytes received: %d\n", total_bytes);
-            printf("Successfull file transmission! Client left!\n");
-            close(*client_socket);
-            fclose(file);
-            exit(1);
+            // Send a file
+            else if (received_input == 2)
+            {
+
+            }
+            // Delete a file
+            else if (received_input == 3)
+            {
+                delete_file(client_socket);
+            }
+            // Exit
+            else if (received_input == 4)
+            {
+
+            }
+            
         }
         // Closes accepted client socket
         close(*client_socket);
@@ -501,15 +532,16 @@ void accept_clients(int *server_socket, int *client_socket)
 }
 
 // Deletes a file/directory 
-void delete_file(int *client_socket, char *path)
+void delete_file(int *client_socket)
 {
     // Variable Declaration Section
 	DIR *directory;
 	struct dirent *directory_pointer;
-    char input[1024];
-    char original_directory[1024];
-    char buffer[1024];
+    char input[MAXSIZE];
+    char original_directory[MAXSIZE];
+    char buffer[MAXSIZE];
     char input_command[2];
+    char path[MAXSIZE];
     int original_path_length = 0;
     int c1 = 0;
     int verify = 0;
