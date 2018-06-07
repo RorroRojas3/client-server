@@ -219,6 +219,16 @@ void display_directories(char *path, int *client_socket)
             // Program will proceed and return the current path
             if (strcmp(input_command, "Y") == 0)
             {
+                // Server stops sending data
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Path set");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == 1)
+                {
+                    fprintf(stderr, "Send() function failed\n");
+                    close(*client_socket);
+                    exit(1);
+                }
                 break;
             }
 
@@ -226,6 +236,7 @@ void display_directories(char *path, int *client_socket)
             // go to next directory available
             else
             {
+                memset(input_command, '\0', sizeof(input_command));
                 while((strcmp(input_command, "Y") != 0) && (strcmp(input_command, "N") != 0))
                 {
                     memset(buffer, '\0', sizeof(buffer));
@@ -274,8 +285,32 @@ void display_directories(char *path, int *client_socket)
                         close(*client_socket);
                         exit(1);
                     }
+
+                    // Server stops sending data
+                    memset(buffer, '\0', sizeof(buffer));
+                    strcpy(buffer, "Done");
+                    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (sent_bytes == 1)
+                    {
+                        fprintf(stderr, "Send() function failed\n");
+                        close(*client_socket);
+                        exit(1);
+                    }
+
+                    memset(buffer, '\0', sizeof(buffer));
+                    memset(input, '\0', sizeof(directory_name));
+                    received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                    if (received_bytes == -1)
+                    {
+                        fprintf(stderr, "Recv() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
                     strcpy(directory_name, buffer);
+                    printf("%s\n", path);
+                    printf("%s\n", directory_name);
                     sprintf(path, "%s/%s", path, directory_name);
+                    printf("%s\n", path);
 
                     success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
                     if (success == -1)
@@ -283,6 +318,7 @@ void display_directories(char *path, int *client_socket)
                         perror("Mkdir() function failed");
                         exit(1);
                     }
+                    memset(input_command, '\0', sizeof(input_command));
                 }
                 // Asks user to go to another directory
                 else
@@ -399,7 +435,7 @@ void accept_clients(int *server_socket, int *client_socket)
 
             display_directories(path, client_socket);
 
-            sprintf(path, "./received_files/%s", file_name);
+            sprintf(path, "%s/%s", path, file_name);
             //printf("Path to Received file: %s\n", path);
 
             // Receives the file size 
