@@ -126,6 +126,7 @@ void display_directories(char *path, int *client_socket)
     memset(input, '\0', sizeof(input));
     memset(input_command, '\0', sizeof(input_command));
     memset(original_directory, '\0', sizeof(original_directory));
+    memset(buffer, '\0', sizeof(buffer));
 
     // Obtain current working directory which will be the restricted
     // directory in which files can be stored at
@@ -142,12 +143,14 @@ void display_directories(char *path, int *client_socket)
 
         // Obtains the new current directory and stores it on
         // variable "path"
-        getcwd(path, sizeof(path));
+        getcwd(buffer, sizeof(buffer));
+        printf("Original: %s\n", original_directory);
+        printf("Current directory: %s\n", buffer);
         
         // Checks if the new path can be acccessed for security reasons
         for (c1 = 0; c1 < original_path_length; c1++)
         {
-            if (path[c1] == original_directory[c1])
+            if (buffer[c1] == original_directory[c1])
             {
                 verify++;
             }
@@ -166,11 +169,19 @@ void display_directories(char *path, int *client_socket)
                 exit(1);
             }
 
+            strcpy(buffer, "\nFiles/Directories of current location:");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                exit(1);
+            }
             // Prints the directories inside the default directory
             while((directory_pointer = readdir(directory)) != NULL)
             {
-                if (directory_pointer->d_type == DT_DIR)
-                {
+                //if (directory_pointer->d_type == DT_DIR)
+                //{
                     sent_bytes = send(*client_socket, directory_pointer->d_name, 1023, 0);
                     if (sent_bytes == -1)
                     {
@@ -178,7 +189,7 @@ void display_directories(char *path, int *client_socket)
                         close(*client_socket);
                         exit(1);
                     }
-                }
+               // }
             }
 
             // Asks the user if to chose current directory to save file
@@ -362,7 +373,15 @@ void display_directories(char *path, int *client_socket)
         }
         else
         {
-            printf("Directory not allowed for access\n");
+            memset(buffer, '\0', sizeof(buffer));
+            strcpy(buffer, "\nDirectory cannot be accessed!");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) -1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed!");
+                close(*client_socket);
+                exit(1);
+            }
             strcpy(path, original_directory);
             verify = 0;
         }
@@ -481,4 +500,9 @@ void accept_clients(int *server_socket, int *client_socket)
         // Closes accepted client socket
         close(*client_socket);
     }
+}
+
+void delete_file(int *client_socket, char *file_name)
+{
+    
 }

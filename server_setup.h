@@ -21,4 +21,7 @@ void *get_client_address(struct sockaddr *);
 // Displays the restricted directories
 void display_directories(char *, int *);
 
+// Deletes files/directory
+void delete_file(int *, char *);
+
 #endif // _SERVER_SETUP_
