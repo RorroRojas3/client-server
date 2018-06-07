@@ -455,7 +455,6 @@ void accept_clients(int *server_socket, int *client_socket)
             display_directories(path, client_socket);
 
             sprintf(path, "%s/%s", path, file_name);
-            //printf("Path to Received file: %s\n", path);
 
             // Receives the file size 
             success = recv(*client_socket, buffer, receive_size - 1, 0);
@@ -488,7 +487,6 @@ void accept_clients(int *server_socket, int *client_socket)
                 }
                 
                 bzero(buffer, receive_size);
-                //printf("Bytes received: %d\n", bytes_received);
             }
             // Closes accepted client socket
             printf("Bytes received: %d\n", total_bytes);
@@ -503,7 +501,7 @@ void accept_clients(int *server_socket, int *client_socket)
 }
 
 // Deletes a file/directory 
-void delete_file(int *client_socket, char *file_name)
+void delete_file(int *client_socket, char *path)
 {
     // Variable Declaration Section
 	DIR *directory;
@@ -517,7 +515,6 @@ void delete_file(int *client_socket, char *file_name)
     int verify = 0;
     int sent_bytes = -1;
     int received_bytes = -1;
-    int success = -1;
 
     // Clear garbage from character strings
     memset(input, '\0', sizeof(input));
@@ -588,7 +585,119 @@ void delete_file(int *client_socket, char *file_name)
                     }
                }
             }
-       }
+
+            while((strcmp(input_command, "Y") != 0) && (strcmp(input_command, "N") != 0))
+            {
+                // Tells Client to enter the name of directory to be deleted
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input_command, '\0', sizeof(input_command));
+                strcpy(buffer, "Delete file on this directory? [Y/N]: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Tells client Server is done sending information
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input_command, buffer);
+            }
+
+            // Delete files
+            if (strcmp(input_command, "Y") == 0)
+            {
+                // Tells Client to enter the name of directory to be deleted
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                strcpy(buffer, "Name of file to be deleted?: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Tells client Server is done sending information
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input, buffer);
+                remove(input);  
+                break;
+            }
+            // Go to another directory
+            else
+            {
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                strcpy(buffer, "Enter the name of directory you want to go: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Server stops sending data
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == 1)
+                {
+                    fprintf(stderr, "Send() function failed\n");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input, buffer);
+                sprintf(path, "%s/%s", path, input);
+            }
+        }
        else
        {
             memset(buffer, '\0', sizeof(buffer));
@@ -603,6 +712,6 @@ void delete_file(int *client_socket, char *file_name)
             strcpy(path, original_directory);
             verify = 0;
        }
-         
+    }   
 }
 
