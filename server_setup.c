@@ -451,6 +451,16 @@ void accept_clients(int *server_socket, int *client_socket)
                 exit(1);
             } 
 
+            // Server receives what Client desided to do
+            received_bytes = recv(*client_socket, buffer, MAXSIZE - 1,  0);
+            if (received_bytes == -1)
+            {
+                fprintf(stderr, "Recv() function failed");
+                close(*client_socket);
+                exit(1);
+            }
+            received_input = atoi(buffer);
+
 
             // Receive a file
             if (received_input == 1)
@@ -522,7 +532,9 @@ void accept_clients(int *server_socket, int *client_socket)
             // Exit
             else if (received_input == 4)
             {
-
+                close(*client_socket);
+                printf("Successfull exit! Client left\n");
+                exit(1);
             }
             
         }

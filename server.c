@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     int client_socket;
     struct addrinfo temp_info, *server_info;
     
-    // Obtains and sets information regaring Server 
+    // Obtains and sets information regarding Server 
     set_server_info(&temp_info, &server_info, 3, 1, PORTNUMBER);
 
     // Sets up server
