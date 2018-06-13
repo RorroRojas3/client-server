@@ -10,7 +10,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
-#include "server_setup.h"
+#include <sys/stat.h>
+#include <dirent.h>
+#include "client_setup.h"
+
+#define MAXSIZE 1024
 
 void set_client_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, int socket_type, char *server_address, char *port_number)
 {
@@ -87,6 +91,16 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     // Variable declaration section
     int success;
     char ip[INET6_ADDRSTRLEN];
+    char buffer[MAXSIZE];
+    char client_input[MAXSIZE];
+    int received_bytes = 0;
+    int sent_bytes = 0;
+    int client_option = 0;
+    
+    // Clears garbage from String variables
+    memset(ip, '\0', sizeof(ip));
+    memset(buffer, '\0', sizeof(buffer));
+    
 
     // Creates Client socket
     *client_socket = socket(client_info->ai_family, client_info->ai_socktype, client_info->ai_protocol);
@@ -111,16 +125,67 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
 
     // Frees struct addrinfo "client_info"
     freeaddrinfo(client_info);
+    
+    // Receives and sends option of Sending/Receiving/Deleting/Exiting program from Server
+    received_bytes = recv(*client_socket, buffer, sizeof(buffer) -1, 0);
+    if (received_bytes == -1)
+    {
+    	fprintf(stderr, "recv() function failed");
+    	close(*client_socket);
+    	exit(1);
+    }
+    printf("Server sent: %s", buffer);
+    while((strcmp(client_input, "1") != 0) && (strcmp(client_input, "2") != 0) && (strcmp(client_input, "3") != 0) && (strcmp(client_input, "4") != 0))
+    {
+    	memset(buffer, '\0', sizeof(buffer));
+    	printf("Enter command: ");
+    	fgets(buffer, sizeof(buffer), stdin);
+    	sscanf(client_input, "%s", buffer);
+    }
+    sent_bytes = send(*client_socket, client_input, sizeof(client_input) - 1, 0);
+    if (sent_bytes == -1)
+    {
+    	fprintf(stderr, "send() function failed");
+    	close(*client_socket);
+    	exit(1);
+    }
+    
+   	// Based on Client input, Client will either Send/Receive/Delete or Exit program 
+    client_option = atoi(client_input);
+    if (client_option == 1)
+    {
+    	send_file_to_server(client_socket);
+    	close(*client_socket);
+    	exit(1);
+    }
+    else if (client_option == 2)
+    {
+    	receive_file_from_server(client_socket);
+    	close(*client_socket);
+    	exit(1);
+    }
+    else if (client_option == 3)
+    {
+    	set_path(client_socket);
+    	close(*client_socket);
+    	exit(1);
+    }
+    else
+    {
+    	close(*client_socket);
+    	printf("Program will be terminated!");
+    	exit(1);
+    }
 }
 
 // Function lets the user set the directory in which file will be saved
 // User will be allowed to create directories and save the files in directory preferred
-void set_directory(int *client_socket)
+void set_path(int *client_socket)
 {
     int received_bytes = 1;
     int sent_bytes = -1;
-    char buffer[1024];
-    char message[1024];
+    char buffer[MAXSIZE];
+    char message[MAXSIZE];
 
     while(1)
     {
@@ -139,7 +204,7 @@ void set_directory(int *client_socket)
             else if(received_bytes > 0)
             {
                 strcpy(message, buffer);
-                if(strcmp(message, "Done") == 0)
+                if(strcmp(message, "Sever done sending data") == 0)
                 {
                     break;
                 }
@@ -180,7 +245,98 @@ void set_directory(int *client_socket)
     }
 }
 
-void send_file_to_server(int *client_socket, char *file_name)
+void choose_path(char *path, char *file_name, int client_option)
+{
+	// Variable Declaration Section
+	DIR *directory;
+	struct dirent *directory_pointer;
+	char buffer[MAXSIZE];
+	char client_input[MAXSIZE];
+	
+	// Clean garbage from string variables
+	memset(buffer, '\0', sizeof(buffer));
+	memset(client_input, '\0', sizeof(client_input));
+	
+	if (getcwd(path, sizeof(path)) == NULL)
+	{
+		perror("getcwd() function failed!");
+		exit(1);
+	}
+	
+	while(1)
+	{
+		// Change current directory
+		chdir(path);
+		
+		// Opens current directory based on the path given
+		directory = opendir(path);
+		if (directory == NULL)
+		{
+			perror("opendir() function failed!");
+			exit(1);
+		}
+		
+		printf("\nFiles/Directories on current directory:\n\n");
+		
+		while((directory_pointer = readdir(directory)) != NULL)
+		{
+			if ((directory_pointer->d_type == DT_DIR) || (directory_pointer->d_type == DT_REG))
+			{
+				printf("%s\n", directory_pointer->d_name);
+			}
+		}
+		printf("\n");
+	
+	
+		// Lets Client choose file to be sent to Server
+		if (client_option == 1)
+		{
+			while((strcmp(client_input, "y") != 0) && (strcmp(client_input, "n") != 0))
+			{
+				memset(buffer, '\0', sizeof(buffer));
+				memset(client_input, '\0', sizeof(client_input));
+				printf("Choose file from current directory? [y/n]: ");
+				fgets(buffer, sizeof(buffer), stdin);
+				sscanf(client_input, "%s", buffer);
+			}
+			if (strcmp(client_input, "y") == 0)
+			{
+				memset(buffer, '\0', sizeof(buffer));
+				memset(client_input, '\0', sizeof(client_input));
+				printf("Enter name of file: ");
+				fgets(buffer, sizeof(buffer), stdin);
+				sscanf(client_input, "%s", buffer);
+				strcpy(file_name, client_input);
+				break;
+			}
+		}
+		// Lets Client choose directory to save file from Server
+		else
+		{
+			while((strcmp(client_input, "y") != 0) && (strcmp(client_input, "n") != 0))
+			{
+				memset(buffer, '\0', sizeof(buffer));
+				memset(client_input, '\0', sizeof(client_input));
+				printf("Save file on current directory? [y/n]: ");
+				fgets(buffer, sizeof(buffer), stdin);
+				sscanf(client_input, "%s", buffer);
+			}
+			if (strcmp(client_input, "y") == 0)
+			{
+				break;
+			}
+		}
+		// Goes to another directory
+		memset(buffer, '\0', sizeof(buffer));
+		memset(client_input, '\0', sizeof(client_input));
+		printf("\nEnter name of directory to go next: ");
+		fgets(buffer, sizeof(buffer), stdin);
+		sscanf(client_input, "%s", buffer);
+		sprintf(path, "%s/%s", path, client_input);
+	}
+}
+
+void send_file_to_server(int *client_socket)
 {
     // Variable declaration section
     FILE *file;
@@ -190,6 +346,7 @@ void send_file_to_server(int *client_socket, char *file_name)
     int sent_data = -1;
     char buffer[sent_size];
     int total_bytes = 0;
+    char file_name[MAXSIZE];
     
     file = fopen(file_name, "rb");
     if (file == NULL)
@@ -215,7 +372,7 @@ void send_file_to_server(int *client_socket, char *file_name)
     }
     printf("Sent file name: %s to Server\n",file_name);
 
-    set_directory(client_socket);
+    set_path(client_socket);
 
     // Sends the file size to server
     sprintf(buffer, "%d", size_of_file);
@@ -233,7 +390,7 @@ void send_file_to_server(int *client_socket, char *file_name)
     while (!feof(file))
     {
         n = fread(buffer, sizeof(char), sent_size - 1, file);
-        if (n > 256)
+        if (n > MAXSIZE)
         {
             sent_data = send(*client_socket, buffer, sent_size - 1, 0);
         }

@@ -38,7 +38,4 @@ int main(int argc, char *argv[])
     // Sets up Client and connects to desired Server
     setup_client(client_info, &client_socket);
 
-    // Sends file to server
-    send_file_to_server(&client_socket, argv[2]);
-
 }

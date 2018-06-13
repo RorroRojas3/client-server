@@ -12,10 +12,22 @@ void set_client_info(struct addrinfo *, struct addrinfo **, int, int, char *, ch
 void setup_client(struct addrinfo *,  int *);
 
 // Gets the IP address of Server connected
-void get_server_address(struct addrinfo *);
+void *get_server_address(struct sockaddr *);
 
-void send_file_to_server(int *, char *);
+// Allows Client to choose file and path
+void choose_file(char *, char *, int);
 
-void set_directory(int *);
+// Allows client to send Server commands 
+void set_path(int *);
+
+// Sends file to Server
+void send_file_to_server(int *);
+
+// Recevies file from Server
+void receive_file_from_server(int *);
+
+
+
+
 
 #endif // _CLIENT_SETUP_H

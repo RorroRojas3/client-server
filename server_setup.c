@@ -351,6 +351,16 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
+
+                memset(buffer, '\0', sizeof(buffer));
+				strcpy(buffer, "Path has been set");
+				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
+				if (sent_bytes == -1)
+				{
+					fprintf(stderr, "send() function failed");
+					exit(1);
+				}
+                
 				strcpy(client_input, buffer);
                 strcpy(file_name, client_input);
 				sprintf(path, "%s/%s", path, client_input);
@@ -419,6 +429,16 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
+
+                memset(buffer, '\0', sizeof(buffer));
+				strcpy(buffer, "Path has been set");
+				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
+				if (sent_bytes == -1)
+				{
+					fprintf(stderr, "send() function failed");
+					exit(1);
+				}
+
 				strcpy(client_input, buffer);
                 strcpy(file_name, client_input);
 				sprintf(path, "%s/%s", path, client_input);
