@@ -521,30 +521,12 @@ void receive_file(int *client_socket, int client_option)
             total_bytes += received_bytes;
             fwrite(buffer, sizeof(char), received_bytes, file);
         }
-        
-        bzero(buffer, MAXSIZE);
     }
 
     // Closes accepted client socket
     printf("Bytes received: %d\n", total_bytes);
     printf("Successfull file transmission! Client left!\n");
-    close(*client_socket);
     fclose(file);
-    exit(1);
-}
-
-// Deletes a file/directory 
-void delete_file(int *client_socket, int client_option)
-{
-    // Variable declaration section
-    char path[MAXSIZE];
-    char file_name[MAXSIZE];
-
-    memset(path, '\0', sizeof(path));
-    memset(file_name, '\0', sizeof(file_name));
-
-    set_path(path, client_socket, client_option, file_name);
-    remove(path);
 }
 
 void send_file_to_client(int *client_socket, int client_option)
@@ -633,7 +615,20 @@ void send_file_to_client(int *client_socket, int client_option)
     printf("Total bytes sent to Client: %d\n", total_bytes);
     printf("File sent successfully! Connection to Client has ended!\n");
     fclose(file);
-    close(*client_socket);
+}
+
+// Deletes a file/directory 
+void delete_file(int *client_socket, int client_option)
+{
+    // Variable declaration section
+    char path[MAXSIZE];
+    char file_name[MAXSIZE];
+
+    memset(path, '\0', sizeof(path));
+    memset(file_name, '\0', sizeof(file_name));
+
+    set_path(path, client_socket, client_option, file_name);
+    remove(path);
 }
 
 // Getss connectec Client's IP address
