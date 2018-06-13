@@ -712,12 +712,14 @@ void accept_clients(int *server_socket, int *client_socket)
             {
                 receive_file(client_socket, received_input);
                 close(*client_socket);
+                exit(1);
             }
             // Send a file
             else if (received_input == 2)
             {
                 send_file_to_client(client_socket, received_input);
                 close(*client_socket);
+                exit(1);
 
             }
             // Delete a file
@@ -725,6 +727,7 @@ void accept_clients(int *server_socket, int *client_socket)
             {
                 delete_file(client_socket, received_input);
                 close(*client_socket);
+                exit(1);
             }
             // Exit
             else 
