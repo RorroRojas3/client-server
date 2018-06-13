@@ -13,16 +13,16 @@ void set_server_info(struct addrinfo *, struct addrinfo **, int, int, char *);
 void setup_server(struct addrinfo *, int *, int);
 
 // Displays the restricted directories
-void set_path(char *, int *);
+void set_path(char *, int *, int, char *);
 
 // Receives files from Client
-void receive_file(int *);
+void receive_file(int *, int);
 
 // Deletes file based on Client input
-void delete_file(int *);
+void delete_file(int *, int);
 
 // Sends a file to Client
-void send_file_to_client(int *);
+void send_file_to_client(int *, int);
 
 // Gets connectec Client's IP address
 void *get_client_address(struct sockaddr *);
