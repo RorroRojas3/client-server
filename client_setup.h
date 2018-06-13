@@ -14,7 +14,7 @@ void setup_client(struct addrinfo *,  int *);
 // Gets the IP address of Server connected
 void get_server_address(struct addrinfo *);
 
-void send_file(int *, char *);
+void send_file_to_server(int *, char *);
 
 void set_directory(int *);
 

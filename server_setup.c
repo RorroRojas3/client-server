@@ -108,7 +108,7 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
 }
 
 // Sends the directory to Client
-void display_directories(char *path, int *client_socket)
+void set_path(char *path, int *client_socket)
 {
     // Variable Declaration Section
 	DIR *directory;
@@ -318,10 +318,7 @@ void display_directories(char *path, int *client_socket)
                         exit(1);
                     }
                     strcpy(directory_name, buffer);
-                    printf("%s\n", path);
-                    printf("%s\n", directory_name);
                     sprintf(path, "%s/%s", path, directory_name);
-                    printf("%s\n", path);
 
                     success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
                     if (success == -1)
@@ -388,159 +385,79 @@ void display_directories(char *path, int *client_socket)
     }
 }
 
-// Getss connectec Client's IP address
-void *get_client_address(struct sockaddr *client)
+// Receives a file from the Client
+void receive_file(int *client_socket)
 {
-    // IPv4 IP address
-    if (client->sa_family == AF_INET)
-    {
-        return &(((struct sockaddr_in*)client)->sin_addr);
-    }
-    // IPv6 IP address
-    else
-    {
-        return &(((struct sockaddr_in6 *)client)->sin6_addr);
-    }
-}
-
-void accept_clients(int *server_socket, int *client_socket)
-{
-    // Variable declaration section
-    struct sockaddr_storage client_address;
-    socklen_t ip_length;
-    char ip[INET6_ADDRSTRLEN];
-    char buffer[MAXSIZE];
+    // Variable Declaration Section
     char file_name[MAXSIZE];
     char path[MAXSIZE];
-    int child = -1;
-    int file_size = 0;
-    int received_bytes = -1; 
-    int sent_bytes = -1;
+    char buffer[MAXSIZE];
+    int received_bytes = -1;
+    int file_size;
     int total_bytes = 0;
-    int received_input = 0;
 
-    while(1)
+    // Clear string variables
+    memset(file_name, '\0', sizeof(file_name));
+    memset(path, '\0', sizeof(path));
+    memset(buffer, '\0', sizeof(buffer));
+
+    // Receives name of file
+    received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+    if (received_bytes == -1)
     {
-        // Server set to accept up to 10 different clients
-        ip_length = sizeof(client_address);
-        *client_socket = accept(*server_socket, (struct sockaddr *)&client_address, &ip_length);
-        if (*client_socket == -1)
+        fprintf(stderr, "Recv() function failed");
+        close(*client_socket);
+        exit(1);
+    }
+    sprintf(file_name, "%s", buffer);
+    printf("Name of file to be received: %s\n", file_name);
+
+    // Lets client decide path for file to stored at
+    set_path(path, client_socket);
+    sprintf(path, "%s/%s", path, file_name);
+
+    // Receives the file size 
+    memset(buffer, '\0', sizeof(buffer));
+    received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+    if (received_bytes == -1)
+    {
+        fprintf(stderr, "Recv() function failed");
+        close(*client_socket);
+        exit(1);
+    }
+    file_size = atoi(buffer);
+    printf("Size of file to be received: %d\n", file_size);
+
+    // Receives file from Client
+    FILE *file;
+    file = fopen(path, "wb");
+    while (received_bytes != 0)
+    {
+        memset(buffer, '\0', sizeof(buffer));
+        received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
+        if (received_bytes == -1)
         {
-            perror("Accept() function failed");
+            fprintf(stderr, "Recv() function failed");
+            close(*client_socket);
+            fclose(file);
             exit(1);
         }
-
-        // Server gets IP address of conneceted client
-        inet_ntop(client_address.ss_family, get_client_address((struct sockaddr *)&client_address), ip, sizeof(ip));
-        printf("Server: Got connection from %s\n", ip);
-
-        // Creates Sever child which will handle the different clients accepted
-        child = fork();
-        if (child == 0)
+        
+        if (received_bytes != 0)
         {
-            // Sever parent socket no longer needed
-            close(*server_socket);
-            
-            memset(buffer, '\0', sizeof(buffer));
-            strcpy(buffer, "\nSelect an option:\n1) Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
-            sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
-            if (sent_bytes == -1)
-            {
-                fprintf(stderr, "Send() function failed");
-                close(*client_socket);
-                exit(1);
-            } 
-
-            // Server receives what Client desided to do
-            received_bytes = recv(*client_socket, buffer, MAXSIZE - 1,  0);
-            if (received_bytes == -1)
-            {
-                fprintf(stderr, "Recv() function failed");
-                close(*client_socket);
-                exit(1);
-            }
-            received_input = atoi(buffer);
-
-
-            // Receive a file
-            if (received_input == 1)
-            {
-                // Receives name of file
-                received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
-                if (received_bytes == -1)
-                {
-                    fprintf(stderr, "Recv() function failed");
-                    close(*client_socket);
-                    exit(1);
-                }
-                sprintf(file_name, "%s", buffer);
-                printf("Name of file to be received: %s\n", file_name);
-
-                display_directories(path, client_socket);
-
-                sprintf(path, "%s/%s", path, file_name);
-
-                // Receives the file size 
-                received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
-                if (received_bytes == -1)
-                {
-                    fprintf(stderr, "Recv() function failed");
-                    close(*client_socket);
-                    exit(1);
-                }
-                file_size = atoi(buffer);
-                printf("Size of file to be received: %d\n", file_size);
-
-                FILE *file;
-                file = fopen(path, "wb");
-                while (received_bytes != 0)
-                {
-                    received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
-                    if (received_bytes == -1)
-                    {
-                        fprintf(stderr, "Recv() function failed");
-                        close(*client_socket);
-                        fclose(file);
-                        exit(1);
-                    }
-                    
-                    if (received_bytes != 0)
-                    {
-                        total_bytes += received_bytes;
-                        fwrite(buffer, sizeof(char), received_bytes, file);
-                    }
-                    
-                    bzero(buffer, MAXSIZE);
-                }
-                // Closes accepted client socket
-                printf("Bytes received: %d\n", total_bytes);
-                printf("Successfull file transmission! Client left!\n");
-                close(*client_socket);
-                fclose(file);
-                exit(1);
-            }
-            // Send a file
-            else if (received_input == 2)
-            {
-
-            }
-            // Delete a file
-            else if (received_input == 3)
-            {
-                delete_file(client_socket);
-            }
-            // Exit
-            else if (received_input == 4)
-            {
-                close(*client_socket);
-                printf("Successfull exit! Client left\n");
-                exit(1);
-            }
-            
+            total_bytes += received_bytes;
+            fwrite(buffer, sizeof(char), received_bytes, file);
         }
-        // Closes accepted client socket
-        close(*client_socket);
+        
+        bzero(buffer, MAXSIZE);
     }
+
+    // Closes accepted client socket
+    printf("Bytes received: %d\n", total_bytes);
+    printf("Successfull file transmission! Client left!\n");
+    close(*client_socket);
+    fclose(file);
+    exit(1);
 }
 
 // Deletes a file/directory 
@@ -582,8 +499,6 @@ void delete_file(int *client_socket)
         // Obtains the new current directory and stores it on
         // variable "path"
         getcwd(buffer, sizeof(buffer));
-        printf("Original: %s\n", original_directory);
-        printf("Current directory: %s\n", buffer);
         
         // Checks if the new path can be acccessed for security reasons
         for (c1 = 0; c1 < original_path_length; c1++)
@@ -615,6 +530,7 @@ void delete_file(int *client_socket)
                 close(*client_socket);
                 exit(1);
             }
+
             // Prints the directories inside the default directory
             while((directory_pointer = readdir(directory)) != NULL)
             {
@@ -758,4 +674,401 @@ void delete_file(int *client_socket)
        }
     }   
 }
+
+void send_file_to_client(int *client_socket)
+{
+    // Variable Declaration Section
+    DIR *directory;
+    FILE *file;
+    struct dirent *directory_pointer;
+    char input[MAXSIZE];
+    char original_directory[MAXSIZE];
+    char buffer[MAXSIZE];
+    char input_command[2];
+    char path[MAXSIZE];
+    char file_name[MAXSIZE];
+    int original_path_length = 0;
+    int c1 = 0;
+    int verify = 0;
+    int sent_bytes = -1;
+    int received_bytes = -1;
+    int size_of_file = 0;
+    int total_bytes;
+    int bytes =  0;
+
+    // Clear garbage from character strings
+    memset(input, '\0', sizeof(input));
+    memset(input_command, '\0', sizeof(input_command));
+    memset(original_directory, '\0', sizeof(original_directory));
+    memset(buffer, '\0', sizeof(buffer));
+
+    // Obtain current working directory which will be the restricted
+    // directory in which files can be stored at
+    getcwd(original_directory, sizeof(original_directory));
+    original_path_length = strlen(original_directory);
+    strcpy(path, original_directory);
+
+    // Infinite loop that will be broken of when the user chooses the file to be 
+    // sent 
+    while(1)
+    {
+        // Changes the current working directory
+        chdir(path);
+
+        // Obtains the new current directory and stores it on variable "path"
+        getcwd(buffer, sizeof(buffer));
+
+        // Checks if the new path can be accessed for security reasons 
+        for (c1 = 0; c1 < original_path_length; c1++)
+        {
+            if (buffer[c1] == original_directory[c1])
+            {
+                verify++;
+            }
+        }
+
+        // If path can be accessed
+        if (verify == original_path_length)
+        {
+            // Resets the value of verification variable
+            verify = 0;
+
+            directory = opendir(path);
+            if (directory == NULL)
+            {
+                perror("Cannot open directory");
+                close(*client_socket);
+                exit(1);
+            }
+
+            strcpy(buffer, "\nFiles/Directories of current location: ");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                exit(1);
+            }
+
+
+            // Prints the directories inside the default directory
+            while((directory_pointer = readdir(directory)) != NULL)
+            {
+                if ((directory_pointer->d_type == DT_DIR) || (directory_pointer->d_type == DT_REG))
+                {
+                    sent_bytes = send(*client_socket, directory_pointer->d_name, MAXSIZE - 1, 0);
+                    if (sent_bytes == -1)
+                    {
+                        fprintf(stderr, "Send() function failed");
+                        close(*client_socket);
+                        exit(1);
+                    }
+                }
+            }
+
+            while((strcmp(input_command, "Y") != 0) && (strcmp(input_command, "N") != 0))
+            {
+                // Tells Client to enter the name of file to be send
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input_command, '\0', sizeof(input_command));
+                strcpy(buffer, "Send a file from this directory? [Y/N]: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Tells client Server is done sending information
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input_command, buffer);
+            }
+
+            // Get name of file to be sent
+            if (strcmp(input_command, "Y") == 0)
+            {
+                // Tells Client to enter the name of directory to be deleted
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                strcpy(buffer, "Name of file to be sent?: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Tells client Server is done sending information
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input, buffer);
+                sprintf(path, "%s/%s", path, input);
+                break;
+            }
+            // Go to another directory
+            else
+            {
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                strcpy(buffer, "Enter the name of directory you want to go: ");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == -1)
+                {
+                    fprintf(stderr, "Send() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                // Server stops sending data
+                memset(buffer, '\0', sizeof(buffer));
+                strcpy(buffer, "Done");
+                sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (sent_bytes == 1)
+                {
+                    fprintf(stderr, "Send() function failed\n");
+                    close(*client_socket);
+                    exit(1);
+                }
+
+                memset(buffer, '\0', sizeof(buffer));
+                memset(input, '\0', sizeof(input));
+                received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+                if (received_bytes == -1)
+                {
+                    fprintf(stderr, "Recv() function failed");
+                    close(*client_socket);
+                    exit(1);
+                }
+                strcpy(input, buffer);
+                strcpy(file_name, input);
+                sprintf(path, "%s/%s", path, input);
+            }
+        }
+        else
+        {
+            memset(buffer, '\0', sizeof(buffer));
+            strcpy(buffer, "\nDirectory cannot be accessed!");
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) -1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed!");
+                close(*client_socket);
+                exit(1);
+            }
+            strcpy(path, original_directory);
+            verify = 0;
+        }
+    }
+
+    // Open file chosen by the Client
+    file = fopen(path, "rb");
+    if (file == NULL)
+    {
+        fprintf(stderr, "Fopen() function failed");
+        close(*client_socket);
+        exit(1);
+    }
+
+    // Determine size of file
+    fseek(file, 0, SEEK_END);
+    size_of_file = ftell(file);
+    fseek(file, 0 , SEEK_SET);
+
+    // Send the name of file to Client
+    sent_bytes = send(*client_socket, file_name, sizeof(file_name) - 1, 0);
+    if (sent_bytes == -1)
+    {
+        fprintf(stderr, "Send() function failed");
+        close(*client_socket);
+        fclose(file);
+        exit(1);
+    }
+    printf("Sent file name: %s to Client\n", file_name);
+
+    // Send file size to Client
+    sprintf(buffer, "%d", size_of_file);
+    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+    if (sent_bytes == -1)
+    {
+        fprintf(stderr, "Send() function failed");
+        close(*client_socket);
+        fclose(file);
+        exit(1);
+    }
+    printf("Sent file size: %d to Client\n", size_of_file);
+
+    while(!feof(file))
+    {
+        memset(buffer, '\0', sizeof(buffer));
+        bytes = fread(buffer, sizeof(char), sizeof(buffer) - 1, file);
+        if (bytes > MAXSIZE)
+        {
+            sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                fclose(file);
+                exit(1);
+            }
+        }
+        else
+        {
+            sent_bytes = send(*client_socket, buffer, bytes, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                fclose(file);
+                exit(1);
+            }
+        }
+        total_bytes += sent_bytes;
+    }
+
+    printf("Total bytes sent to Client: %d\n", total_bytes);
+    printf("File sent successfully! Connection to Client has ended!\n");
+    fclose(file);
+    close(*client_socket);
+
+
+
+}
+
+// Getss connectec Client's IP address
+void *get_client_address(struct sockaddr *client)
+{
+    // IPv4 IP address
+    if (client->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in*)client)->sin_addr);
+    }
+    // IPv6 IP address
+    else
+    {
+        return &(((struct sockaddr_in6 *)client)->sin6_addr);
+    }
+}
+
+// Sever starts and accepts up to 10 clients at once
+void accept_clients(int *server_socket, int *client_socket)
+{
+    // Variable declaration section
+    struct sockaddr_storage client_address;
+    socklen_t ip_length;
+    char ip[INET6_ADDRSTRLEN];
+    char buffer[MAXSIZE];
+    int child = -1;
+    int received_bytes = -1; 
+    int sent_bytes = -1;
+    int received_input = 0;
+
+    while(1)
+    {
+        // Server set to accept up to 10 different clients
+        ip_length = sizeof(client_address);
+        *client_socket = accept(*server_socket, (struct sockaddr *)&client_address, &ip_length);
+        if (*client_socket == -1)
+        {
+            perror("Accept() function failed");
+            exit(1);
+        }
+
+        // Server gets IP address of conneceted client
+        inet_ntop(client_address.ss_family, get_client_address((struct sockaddr *)&client_address), ip, sizeof(ip));
+        printf("Server: Got connection from %s\n", ip);
+
+        // Creates Sever child which will handle the different clients accepted
+        child = fork();
+        if (child == 0)
+        {
+            // Sever parent socket no longer needed
+            close(*server_socket);
+            
+            memset(buffer, '\0', sizeof(buffer));
+            strcpy(buffer, "\nSelect an option:\n1) Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
+            sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
+            if (sent_bytes == -1)
+            {
+                fprintf(stderr, "Send() function failed");
+                close(*client_socket);
+                exit(1);
+            } 
+
+            // Server receives what Client desided to do
+            received_bytes = recv(*client_socket, buffer, MAXSIZE - 1,  0);
+            if (received_bytes == -1)
+            {
+                fprintf(stderr, "Recv() function failed");
+                close(*client_socket);
+                exit(1);
+            }
+            received_input = atoi(buffer);
+
+
+            // Receive a file
+            if (received_input == 1)
+            {
+                receive_file(client_socket);
+            }
+            // Send a file
+            else if (received_input == 2)
+            {
+
+            }
+            // Delete a file
+            else if (received_input == 3)
+            {
+                delete_file(client_socket);
+            }
+            // Exit
+            else if (received_input == 4)
+            {
+                close(*client_socket);
+                printf("Successfull exit! Client left\n");
+                exit(1);
+            }
+            
+        }
+        // Closes accepted client socket
+        close(*client_socket);
+    }
+}
+
+
 

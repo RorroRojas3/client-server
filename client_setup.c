@@ -180,7 +180,7 @@ void set_directory(int *client_socket)
     }
 }
 
-void send_file(int *client_socket, char *file_name)
+void send_file_to_server(int *client_socket, char *file_name)
 {
     // Variable declaration section
     FILE *file;

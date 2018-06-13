@@ -39,6 +39,6 @@ int main(int argc, char *argv[])
     setup_client(client_info, &client_socket);
 
     // Sends file to server
-    send_file(&client_socket, argv[2]);
+    send_file_to_server(&client_socket, argv[2]);
 
 }
