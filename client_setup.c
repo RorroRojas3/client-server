@@ -16,7 +16,7 @@
 
 #define MAXSIZE 1024
 
-void set_client_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, int socket_type, char *server_address, char *port_number)
+void set_client_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, char *server_address, char *port_number)
 {
     // Variable Declaration Section
     int success = -1;
@@ -43,20 +43,8 @@ void set_client_info(struct addrinfo *temp_info, struct addrinfo **server_info, 
         exit(1);
     }
 
-    // Sets the type of socket, 1 for TCP, 2 for UDP
-    if (socket_type == 1)
-    {
-        temp_info->ai_socktype = SOCK_STREAM;
-    }
-    else if (socket_type == 2)
-    {
-        temp_info->ai_socktype = SOCK_DGRAM;
-    }
-    else
-    {
-        printf("Incorrect Socket type input\n");
-        exit(1);
-    }
+    // Sets TCP socket
+    temp_info->ai_socktype = SOCK_STREAM;	
 
     // Sets the flag to accept either Ipv4 or Ipv6 connections
     temp_info->ai_flags = AI_PASSIVE;
@@ -413,5 +401,9 @@ void send_file_to_server(int *client_socket)
     printf("File sent successfully! Connection to Server has ended.\n");
     fclose(file);
     close(*client_socket);
+}
+
+void receive_file_from_server(int *client_socket)
+{
 
 }

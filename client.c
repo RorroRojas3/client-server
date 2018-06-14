@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
     // Variable Declaration Section
     int client_socket;
     int ipv;
-    int socket_type;
     struct addrinfo temp_info, *client_info;
     
     // Checks that user has entered IP address of Server
@@ -30,10 +29,9 @@ int main(int argc, char *argv[])
     }
 
     ipv = 3;
-    socket_type = 1;
 
     // Obtains and sets information regaring Client 
-    set_client_info(&temp_info, &client_info, ipv, socket_type, argv[1], PORT);
+    set_client_info(&temp_info, &client_info, ipv, argv[1], PORT);
 
     // Sets up Client and connects to desired Server
     setup_client(client_info, &client_socket);

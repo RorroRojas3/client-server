@@ -6,7 +6,7 @@
 #include <netdb.h>
 
 // Obtains and sets Client's information
-void set_client_info(struct addrinfo *, struct addrinfo **, int, int, char *, char *);
+void set_client_info(struct addrinfo *, struct addrinfo **, int, char *, char *);
 
 // Sets up Client
 void setup_client(struct addrinfo *,  int *);
