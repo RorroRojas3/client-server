@@ -20,13 +20,6 @@ int main(int argc, char *argv[])
     int client_socket;
     int ipv;
     struct addrinfo temp_info, *client_info;
-    
-    // Checks that user has entered IP address of Server
-    if (argc != 3)
-    {
-        fprintf(stderr, "Usage: ./program hostname(IP) filename");
-        exit(1);
-    }
 
     ipv = 3;
 

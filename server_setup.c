@@ -124,7 +124,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 	memset(buffer, '\0', sizeof(buffer));
 	
 	// Obtain current working directory
-	if (getcwd(path, sizeof(path)) == NULL)
+	if (getcwd(path, MAXSIZE) == NULL)
 	{
 		perror("getcwd() function failed!");
 		exit(1);
@@ -199,7 +199,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
-				strcpy(buffer, client_input);
+				strcpy(client_input, buffer);
 			}
 			
 			// Client wants to save file on current directory

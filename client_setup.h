@@ -21,7 +21,7 @@ void choose_file(char *, char *, int);
 void set_path(int *);
 
 // Sends file to Server
-void send_file_to_server(int *);
+void send_file_to_server(int *, int);
 
 // Recevies file from Server
 void receive_file_from_server(int *);
