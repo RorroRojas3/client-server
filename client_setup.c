@@ -241,6 +241,7 @@ void choose_path(char *path, char *file_name, int client_option)
 	struct dirent *directory_pointer;
 	char buffer[MAXSIZE];
 	char client_input[MAXSIZE];
+	int success = -1;
 	
 	// Clean garbage from string variables
 	memset(buffer, '\0', sizeof(buffer));
@@ -331,6 +332,12 @@ void choose_path(char *path, char *file_name, int client_option)
 					printf("Enter name of directory: ");
 					fgets(buffer, sizeof(buffer), stdin);
 					sscanf(buffer, "%s", client_input);
+					success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+					if (success == -1)
+					{
+						perror("mkdir() function failed");
+						exit(1);
+					}
 					sprintf(path, "%s/%s", path, client_input);
 					break;
 				}
