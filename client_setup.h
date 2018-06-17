@@ -24,7 +24,7 @@ void set_path(int *);
 void send_file_to_server(int *, int);
 
 // Recevies file from Server
-void receive_file_from_server(int *);
+void receive_file_from_server(int *, int);
 
 
 

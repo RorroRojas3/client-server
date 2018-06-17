@@ -479,7 +479,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 }
 
 // Receives a file from the Client
-void receive_file(int *client_socket, int client_option)
+void receive_file_from_client(int *client_socket, int client_option)
 {
     // Variable Declaration Section
     char file_name[MAXSIZE];
@@ -725,7 +725,7 @@ void accept_clients(int *server_socket, int *client_socket)
             // Receive a file
             if (received_input == 1)
             {
-                receive_file(client_socket, received_input);
+                receive_file_from_client(client_socket, received_input);
                 close(*client_socket);
                 exit(1);
             }

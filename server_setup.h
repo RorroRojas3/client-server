@@ -16,7 +16,7 @@ void setup_server(struct addrinfo *, int *, int);
 void set_path(char *, int *, int, char *);
 
 // Receives files from Client
-void receive_file(int *, int);
+void receive_file_from_client(int *, int);
 
 // Deletes file based on Client input
 void delete_file(int *, int);

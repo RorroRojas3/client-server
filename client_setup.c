@@ -149,7 +149,7 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     }
     else if (client_option == 2)
     {
-    	receive_file_from_server(client_socket);
+    	receive_file_from_server(client_socket, client_option);
     	close(*client_socket);
     	exit(1);
     }
@@ -444,7 +444,68 @@ void send_file_to_server(int *client_socket, int client_option)
     fclose(file);
 }
 
-void receive_file_from_server(int *client_socket)
+void receive_file_from_server(int *client_socket, int client_option)
 {
-
+	// Variable Declaration Section
+	char file_name[MAXSIZE];
+	char path[MAXSIZE];
+	char buffer[MAXSIZE];
+	int received_bytes = -1;
+	int file_size = 0;
+	int total_bytes = 0;
+	
+	// Clear string variables
+	memset(file_name, '\0', sizeof(file_name));
+	memset(path, '\0', sizeof(path));
+	memset(buffer, '\0', sizeof(buffer));
+	
+	// Receive name of file from Server
+	received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+	if (received_bytes == -1)
+	{
+		fprintf(stderr, "recv() function failed");
+		exit(1);
+	}
+	sprintf(file_name, "%s", buffer);
+	printf("Name of file to be received: %s\n", file_name);
+	
+	// Lets client decide where to store file
+	choose_path(path, file_name, client_option);
+	sprintf(path, "%s/%s", path, file_name);
+	
+	// Receive file size from Server
+	memset(buffer, '\0', sizeof(buffer));
+	received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+	if (received_bytes == -1)
+	{
+		fprintf(stderr, "recv() function failed");
+		exit(1);
+	}
+	file_size = atoi(buffer);
+	printf("Size of file to be received: %d\n", file_size);
+	
+	// Receives file from Server
+	FILE *file;
+	file = fopen(path, "wb");
+	while(received_bytes != 0)
+	{
+		memset(buffer, '\0', sizeof(buffer));
+		received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+		if (received_bytes == -1)
+		{
+			fprintf(stderr, "recv() function failed");
+			fclose(file);
+			exit(1);
+		}
+		if (received_bytes != 0)
+		{
+			total_bytes += received_bytes;
+			fwrite(buffer, sizeof(char), received_bytes, file);
+		}
+	}
+	
+	// Ends
+	printf("Bytes recevied: %d\n", total_bytes);
+	printf("Successfull file transmission! Disconnected from Server!\n");
+	fclose(file);
 }
