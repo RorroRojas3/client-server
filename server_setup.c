@@ -321,7 +321,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
-				strcpy(buffer, client_input);
+				strcpy(client_input, buffer);
 			}
 			if (strcmp(client_input, "y") == 0)
 			{
@@ -351,6 +351,8 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
+				strcpy(client_input, buffer);
+				strcpy(file_name, client_input);
 
                 memset(buffer, '\0', sizeof(buffer));
 				strcpy(buffer, "Path has been set");
@@ -361,8 +363,6 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					exit(1);
 				}
                 
-				strcpy(client_input, buffer);
-                strcpy(file_name, client_input);
 				sprintf(path, "%s/%s", path, client_input);
 				break;
 			}
@@ -398,7 +398,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
-				strcpy(buffer, client_input);
+				strcpy(client_input, buffer);
 			}
 			
 			if (strcmp(client_input, "y") == 0)
@@ -429,6 +429,8 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "recv() function failed");
 					exit(1);
 				}
+				strcpy(client_input, buffer);
+                strcpy(file_name, client_input);
 
                 memset(buffer, '\0', sizeof(buffer));
 				strcpy(buffer, "Path has been set");
@@ -438,9 +440,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					fprintf(stderr, "send() function failed");
 					exit(1);
 				}
-
-				strcpy(client_input, buffer);
-                strcpy(file_name, client_input);
+				
 				sprintf(path, "%s/%s", path, client_input);
 				break;
 			}
@@ -702,7 +702,7 @@ void accept_clients(int *server_socket, int *client_socket)
             close(*server_socket);
             
             memset(buffer, '\0', sizeof(buffer));
-            strcpy(buffer, "\nSelect an option:\n1) Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
+            strcpy(buffer, "\nSelect an option:\n1)Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
             sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
             if (sent_bytes == -1)
             {

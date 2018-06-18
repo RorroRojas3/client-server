@@ -129,7 +129,6 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     	printf("Enter command: ");
     	fgets(buffer, sizeof(buffer), stdin);
     	sscanf(buffer, "%s", client_input);
-    	printf("%s\n", client_input);
     }
     sent_bytes = send(*client_socket, client_input, sizeof(client_input) - 1, 0);
     if (sent_bytes == -1)
@@ -162,7 +161,7 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     else
     {
     	close(*client_socket);
-    	printf("Program will be terminated!");
+    	printf("Program will be terminated!\n");
     	exit(1);
     }
 }
@@ -458,6 +457,9 @@ void receive_file_from_server(int *client_socket, int client_option)
 	memset(file_name, '\0', sizeof(file_name));
 	memset(path, '\0', sizeof(path));
 	memset(buffer, '\0', sizeof(buffer));
+	
+	// Allows Client to choose what file to receive from Server
+	set_path(client_socket);
 	
 	// Receive name of file from Server
 	received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);

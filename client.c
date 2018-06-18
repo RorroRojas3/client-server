@@ -29,4 +29,5 @@ int main(int argc, char *argv[])
     // Sets up Client and connects to desired Server
     setup_client(client_info, &client_socket);
 
+	return 0;
 }
