@@ -529,8 +529,8 @@ void receive_file_from_client(int *client_socket, int client_option)
     }
 
     // Closes accepted client socket
-    printf("Bytes received: %d\n", total_bytes);
-    printf("Successfull file transmission! Client left!\n");
+    //printf("Bytes received: %d\n", total_bytes);
+    //printf("Successfull file transmission! Client left!\n");
     fclose(file);
 }
 
@@ -600,8 +600,8 @@ void send_file_to_client(int *client_socket, int client_option)
         total_bytes += sent_bytes;
     }
 
-    printf("Total bytes sent to Client: %d\n", total_bytes);
-    printf("File sent successfully! Connection to Client has ended!\n");
+    //printf("Total bytes sent to Client: %d\n", total_bytes);
+    //printf("File sent successfully! Connection to Client has ended!\n");
     fclose(file);
 }
 
@@ -682,7 +682,7 @@ void accept_clients(int *server_socket, int *client_socket)
             close(*server_socket);
             
             memset(buffer, '\0', sizeof(buffer));
-            strcpy(buffer, "\nSelect an option:\n1)Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program\n");
+            strcpy(buffer, "\nSelect an option:\n1)Send a file\n2)Receive a file\n3)Delete a file\n4)Exit program");
             sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
             if (sent_bytes == -1)
             {

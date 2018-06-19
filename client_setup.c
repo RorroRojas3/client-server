@@ -109,7 +109,7 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
 
     // Converts IPv4/Ipv6 addresses from binary to text form 
 	inet_ntop(client_info->ai_family, get_server_address((struct sockaddr *)client_info->ai_addr), ip, sizeof(ip));
-	printf("Client connected to IP:  %s\n", ip);
+	printf("Client connected to IP: %s\n", ip);
 
     // Frees struct addrinfo "client_info"
     freeaddrinfo(client_info);
@@ -122,7 +122,7 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     	close(*client_socket);
     	exit(1);
     }
-    printf("Server sent: %s", buffer);
+    printf("Server sent: %s\n\n", buffer);
     while((strcmp(client_input, "1") != 0) && (strcmp(client_input, "2") != 0) && (strcmp(client_input, "3") != 0) && (strcmp(client_input, "4") != 0))
     {
     	memset(buffer, '\0', sizeof(buffer));
@@ -213,7 +213,7 @@ void set_path(int *client_socket)
                 }
                 else
                 {
-                    printf("\n%s\n\n", message);
+                    printf("%s\n", message);
                 }
                 
             }
@@ -371,7 +371,7 @@ void send_file_to_server(int *client_socket, int client_option)
     char buffer[MAXSIZE];
     char path[MAXSIZE];
     char file_name[MAXSIZE];
-    int size_of_file = 0;
+    int file_size = 0;
     int sent_bytes = 0;
     int bytes = 0;
     int total_bytes = 0;
@@ -382,8 +382,6 @@ void send_file_to_server(int *client_socket, int client_option)
     
     choose_path(path, file_name, client_option);
     sprintf(path, "%s/%s", path, file_name);
-    
-    printf("%s\n", path);
     
     // Open file chosen by the Client
     file = fopen(path, "rb");
@@ -396,7 +394,7 @@ void send_file_to_server(int *client_socket, int client_option)
     
     // Determine size of file
     fseek(file, 0, SEEK_END);
-    size_of_file = ftell(file);
+    file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
     
     // Send the name of file to Server
@@ -413,7 +411,7 @@ void send_file_to_server(int *client_socket, int client_option)
     set_path(client_socket);
     
     // Send file size to Server
-    sprintf(buffer, "%d", size_of_file);
+    sprintf(buffer, "%d", file_size);
     sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
     if (sent_bytes == -1)
     {
@@ -421,7 +419,7 @@ void send_file_to_server(int *client_socket, int client_option)
     	fclose(file);
     	exit(1);
     }
-    printf("Sent file size: %d to Server\n", size_of_file);
+    printf("Sent file size: %d to Server\n", file_size);
     
     while(!feof(file))
     {
@@ -437,8 +435,14 @@ void send_file_to_server(int *client_socket, int client_option)
     	}
     	total_bytes += sent_bytes;
     }
-    printf("Total bytes sent to Server: %d\n", total_bytes);
-    printf("File sent successfully! Connection to Server has ended!\n");
+    if (total_bytes == file_size)
+    {
+    	printf("File sent successfully! Connection to Server has ended!\n");
+    }
+    else
+    {
+    	printf("Unsuccessfull file transmission! Connection to Server has ended!\n");
+    }
     fclose(file);
 }
 
@@ -507,7 +511,14 @@ void receive_file_from_server(int *client_socket, int client_option)
 	}
 	
 	// Ends
-	printf("Bytes recevied: %d\n", total_bytes);
-	printf("Successfull file transmission! Disconnected from Server!\n");
+	if (file_size == total_bytes)
+	{
+		printf("Bytes recevied: %d\n", total_bytes);
+		printf("Successfull file transmission! Disconnected from Server!\n");
+	}
+	else
+	{
+		printf("File transmission unsuccessfull! Disconnected from Server!\n");
+	}
 	fclose(file);
 }
