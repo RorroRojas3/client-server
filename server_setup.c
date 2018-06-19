@@ -461,7 +461,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 			perror("recv() function failed");
 			exit(1);
 		}
-		strcpy(buffer, client_input);
+		strcpy(client_input, buffer);
 		sprintf(path, "%s/%s", path, client_input);	
 	}
 }

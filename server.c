@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     struct addrinfo temp_info, *server_info;
     
     // Obtains and sets information regarding Server 
-    set_server_info(&temp_info, &server_info, 3, 1, PORTNUMBER);
+    set_server_info(&temp_info, &server_info, 3, PORTNUMBER);
 
     // Sets up server
     setup_server(server_info, &server_socket, MAXCLIENTS);
