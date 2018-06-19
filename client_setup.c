@@ -155,6 +155,17 @@ void setup_client(struct addrinfo *client_info, int *client_socket)
     else if (client_option == 3)
     {
     	set_path(client_socket);
+    	
+    	memset(buffer, '\0', sizeof(buffer));
+    	received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
+    	if (received_bytes == -1)
+    	{
+    		perror("recv() function failed");
+    		close(*client_socket);
+    		exit(1);
+    	}
+    	printf("%s\n", buffer);
+    	
     	close(*client_socket);
     	exit(1);
     }
@@ -202,7 +213,7 @@ void set_path(int *client_socket)
                 }
                 else
                 {
-                    printf("%s\n", message);
+                    printf("\n%s\n\n", message);
                 }
                 
             }
@@ -214,7 +225,7 @@ void set_path(int *client_socket)
         {
             memset(buffer, '\0', sizeof(buffer));
             memset(message, '\0', sizeof(message));
-            printf("Enter option: ");
+            printf("\nEnter option: ");
             fgets(buffer, sizeof(buffer) -1, stdin);
             sscanf(buffer, "%s", message);
             sent_bytes = send(*client_socket, message, sizeof(message) - 1, 0);

@@ -611,12 +611,24 @@ void delete_file(int *client_socket, int client_option)
     // Variable declaration section
     char path[MAXSIZE];
     char file_name[MAXSIZE];
+    char buffer[MAXSIZE];
+    int sent_bytes = -1;
 
     memset(path, '\0', sizeof(path));
     memset(file_name, '\0', sizeof(file_name));
+	memset(buffer, '\0', sizeof(buffer));
 
     set_path(path, client_socket, client_option, file_name);
     remove(path);
+    
+    sprintf(buffer, "File has been deleted: %s", file_name);
+    sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
+    if (sent_bytes == -1)
+    {
+    	perror("send() function failed");
+    	exit(1);
+    }
+    
 }
 
 // Getss connectec Client's IP address
