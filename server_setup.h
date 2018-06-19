@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 
 // Obtains and sets information regaring Server 
-void set_server_info(struct addrinfo *, struct addrinfo **, int, int, char *);
+void set_server_info(struct addrinfo *, struct addrinfo **, int, char *);
 
 // Sets up server
 void setup_server(struct addrinfo *, int *, int);

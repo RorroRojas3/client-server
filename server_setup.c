@@ -16,7 +16,7 @@
 
 #define MAXSIZE 1024
 
-void set_server_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, int type, char *port_number)
+void set_server_info(struct addrinfo *temp_info, struct addrinfo **server_info, int ipv, char *port_number)
 {
     // Variable Declaration Section
     int success = -1;
@@ -43,21 +43,9 @@ void set_server_info(struct addrinfo *temp_info, struct addrinfo **server_info, 
         exit(1);
     }
 
-    // Sets the type of socket, 1 for TCP, 2 for UDP
-    if (type == 1)
-    {
-        temp_info->ai_socktype = SOCK_STREAM;
-    }
-    else if (type == 2)
-    {
-        temp_info->ai_socktype = SOCK_DGRAM;
-    }
-    else
-    {
-        printf("Incorrect Socket type input\n");
-        exit(1);
-    }
-
+    // Sets the type of socket to TCP
+    temp_info->ai_socktype = SOCK_STREAM;
+    
     // Sets the flag to accept either Ipv4 or Ipv6 connections
     temp_info->ai_flags = AI_PASSIVE;
 
@@ -79,7 +67,7 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     *server_socket = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
     if (*server_socket == -1)
     {
-        perror("Socket() function failed ");
+        perror("s ocket() function failed ");
         exit(1);
     }
 
@@ -87,7 +75,7 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     success = bind(*server_socket, server_info->ai_addr, server_info->ai_addrlen);
     if (success == -1)
     {
-        perror("Bind() function failed ");
+        perror("bind() function failed ");
         close(*server_socket);
         exit(1);
     }
@@ -99,7 +87,7 @@ void setup_server(struct addrinfo *server_info, int *server_socket, int max_clie
     success = listen(*server_socket, max_clients);
     if (success == -1)
     {
-        perror("Listen() function failed ");
+        perror("listen() function failed ");
         close(*server_socket);
         exit(1);
     }
@@ -148,7 +136,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 		sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 		if (sent_bytes == -1)
 		{
-			fprintf(stderr, "send() function failed");
+			perror("send() function failed");
 			exit(1);
 		}
 		
@@ -162,7 +150,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 			}
@@ -178,7 +166,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -188,7 +176,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -196,7 +184,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (received_bytes == -1)
 				{
-					fprintf(stderr, "recv() function failed");
+					perror("recv() function failed");
 					exit(1);
 				}
 				strcpy(client_input, buffer);
@@ -210,7 +198,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				break;
@@ -227,7 +215,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 					if (sent_bytes == -1)
 					{
-						fprintf(stderr, "send() function failed");
+						perror("send() function failed");
 						exit(1);
 					}
 					
@@ -236,7 +224,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 					if (sent_bytes == -1)
 					{
-						fprintf(stderr, "send() function failed");
+						perror("send() function failed");
 						exit(1);
 					}
 					
@@ -244,7 +232,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 					if (received_bytes == -1)
 					{
-						fprintf(stderr, "recv() function failed");
+						perror("recv() function failed");
 						exit(1);
 					}
 					strcpy(client_input, buffer);
@@ -257,7 +245,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 					if (sent_bytes == -1)
 					{
-						fprintf(stderr, "send() function failed");
+						perror("send() function failed");
 						exit(1);
 					}
 					
@@ -266,7 +254,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 					if (sent_bytes == -1)
 					{
-						fprintf(stderr, "send() function failed");
+						perror("send() function failed");
 						exit(1);
 					}
 					
@@ -275,7 +263,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 					received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 					if (received_bytes == -1)
 					{
-						fprintf(stderr, "recv() function failed");
+						perror("recv() function failed");
 						exit(1);
 					}
 					strcpy(client_input, buffer);
@@ -301,7 +289,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -310,7 +298,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -318,7 +306,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (received_bytes == -1)
 				{
-					fprintf(stderr, "recv() function failed");
+					perror("recv() function failed");
 					exit(1);
 				}
 				strcpy(client_input, buffer);
@@ -331,7 +319,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -340,7 +328,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -348,7 +336,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (received_bytes == -1)
 				{
-					fprintf(stderr, "recv() function failed");
+					perror("recv() function failed");
 					exit(1);
 				}
 				strcpy(client_input, buffer);
@@ -359,7 +347,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
                 
@@ -378,7 +366,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -387,7 +375,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -395,7 +383,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (received_bytes == -1)
 				{
-					fprintf(stderr, "recv() function failed");
+					perror("recv() function failed");
 					exit(1);
 				}
 				strcpy(client_input, buffer);
@@ -409,7 +397,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -418,7 +406,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -426,7 +414,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 				if (received_bytes == -1)
 				{
-					fprintf(stderr, "recv() function failed");
+					perror("recv() function failed");
 					exit(1);
 				}
 				strcpy(client_input, buffer);
@@ -437,7 +425,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 				sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 				if (sent_bytes == -1)
 				{
-					fprintf(stderr, "send() function failed");
+					perror("send() function failed");
 					exit(1);
 				}
 				
@@ -453,7 +441,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 		sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
         if (sent_bytes == -1)
         {
-            fprintf(stderr, "Send() function failed");
+            perror("send() function failed");
             exit(1);
         } 
         
@@ -462,7 +450,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 		sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1,  0);
 		if (sent_bytes == -1)
 		{
-			fprintf(stderr, "send() function failed");
+			perror("send() function failed");
 			exit(1);
 		}
 		
@@ -470,7 +458,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 		received_bytes = recv(*client_socket, buffer, sizeof(buffer) - 1, 0);
 		if (received_bytes == -1)
 		{
-			fprintf(stderr, "recv() function failed");
+			perror("recv() function failed");
 			exit(1);
 		}
 		strcpy(buffer, client_input);
@@ -498,8 +486,7 @@ void receive_file_from_client(int *client_socket, int client_option)
     received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
     if (received_bytes == -1)
     {
-        fprintf(stderr, "Recv() function failed");
-        close(*client_socket);
+        perror("recv() function failed");
         exit(1);
     }
     sprintf(file_name, "%s", buffer);
@@ -514,8 +501,7 @@ void receive_file_from_client(int *client_socket, int client_option)
     received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
     if (received_bytes == -1)
     {
-        fprintf(stderr, "Recv() function failed");
-        close(*client_socket);
+        perror("recv() function failed");
         exit(1);
     }
     file_size = atoi(buffer);
@@ -530,8 +516,7 @@ void receive_file_from_client(int *client_socket, int client_option)
         received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
         if (received_bytes == -1)
         {
-            fprintf(stderr, "Recv() function failed");
-            close(*client_socket);
+            perror("recv() function failed");
             fclose(file);
             exit(1);
         }
@@ -570,8 +555,7 @@ void send_file_to_client(int *client_socket, int client_option)
     file = fopen(path, "rb");
     if (file == NULL)
     {
-        fprintf(stderr, "Fopen() function failed");
-        close(*client_socket);
+        perror("fopen() function failed");
         exit(1);
     }
 
@@ -584,8 +568,7 @@ void send_file_to_client(int *client_socket, int client_option)
     sent_bytes = send(*client_socket, file_name, sizeof(file_name) - 1, 0);
     if (sent_bytes == -1)
     {
-        fprintf(stderr, "Send() function failed");
-        close(*client_socket);
+        perror("send() function failed");
         fclose(file);
         exit(1);
     }
@@ -596,8 +579,7 @@ void send_file_to_client(int *client_socket, int client_option)
     sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
     if (sent_bytes == -1)
     {
-        fprintf(stderr, "Send() function failed");
-        close(*client_socket);
+        perror("send() function failed");
         fclose(file);
         exit(1);
     }
@@ -607,27 +589,13 @@ void send_file_to_client(int *client_socket, int client_option)
     {
         memset(buffer, '\0', sizeof(buffer));
         bytes = fread(buffer, sizeof(char), sizeof(buffer) - 1, file);
-        if (bytes > MAXSIZE)
+        
+        sent_bytes = send(*client_socket, buffer, bytes, 0);
+        if (sent_bytes == -1)
         {
-            sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
-            if (sent_bytes == -1)
-            {
-                fprintf(stderr, "Send() function failed");
-                close(*client_socket);
-                fclose(file);
-                exit(1);
-            }
-        }
-        else
-        {
-            sent_bytes = send(*client_socket, buffer, bytes, 0);
-            if (sent_bytes == -1)
-            {
-                fprintf(stderr, "Send() function failed");
-                close(*client_socket);
-                fclose(file);
-                exit(1);
-            }
+        	perror("send() function failed");
+        	fclose(file);
+        	exit(1);
         }
         total_bytes += sent_bytes;
     }
@@ -686,7 +654,7 @@ void accept_clients(int *server_socket, int *client_socket)
         *client_socket = accept(*server_socket, (struct sockaddr *)&client_address, &ip_length);
         if (*client_socket == -1)
         {
-            perror("Accept() function failed");
+            perror("accept() function failed");
             exit(1);
         }
 
@@ -706,7 +674,7 @@ void accept_clients(int *server_socket, int *client_socket)
             sent_bytes = send(*client_socket, buffer, MAXSIZE - 1, 0);
             if (sent_bytes == -1)
             {
-                fprintf(stderr, "Send() function failed");
+                perror("send() function failed");
                 close(*client_socket);
                 exit(1);
             } 
@@ -715,7 +683,7 @@ void accept_clients(int *server_socket, int *client_socket)
             received_bytes = recv(*client_socket, buffer, MAXSIZE - 1,  0);
             if (received_bytes == -1)
             {
-                fprintf(stderr, "Recv() function failed");
+                perror("recv() function failed");
                 close(*client_socket);
                 exit(1);
             }

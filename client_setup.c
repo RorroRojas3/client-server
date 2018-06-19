@@ -416,25 +416,13 @@ void send_file_to_server(int *client_socket, int client_option)
     {
     	memset(buffer, '\0', sizeof(buffer));
     	bytes = fread(buffer, sizeof(char), sizeof(buffer) -1, file);
-    	if (bytes > MAXSIZE)
+    	
+    	sent_bytes = send(*client_socket, buffer, bytes, 0);
+    	if (sent_bytes == -1)
     	{
-    		sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
-    		if (sent_bytes == -1)
-    		{
-    			fprintf(stderr, "send() function failed");
-    			fclose(file);
-    			exit(1);
-    		}
-    	}
-    	else
-    	{
-    		sent_bytes = send(*client_socket, buffer, bytes, 0);
-    		if (sent_bytes == -1)
-    		{
-    			fprintf(stderr, "send() function failed");
-    			fclose(file);
-    			exit(1);
-    		}
+    		perror("send() function failed");
+    		fclose(file);
+    		exit(1);
     	}
     	total_bytes += sent_bytes;
     }
@@ -443,6 +431,7 @@ void send_file_to_server(int *client_socket, int client_option)
     fclose(file);
 }
 
+// Receives file from Server
 void receive_file_from_server(int *client_socket, int client_option)
 {
 	// Variable Declaration Section
