@@ -572,7 +572,7 @@ void send_file_to_client(int *client_socket, int client_option)
         fclose(file);
         exit(1);
     }
-    printf("Sent file name: %s to Client\n", file_name);
+    //printf("Sent file name: %s to Client\n", file_name);
 
     // Send file size to Client
     sprintf(buffer, "%d", size_of_file);
@@ -583,7 +583,7 @@ void send_file_to_client(int *client_socket, int client_option)
         fclose(file);
         exit(1);
     }
-    printf("Sent file size: %d to Client\n", size_of_file);
+    //printf("Sent file size: %d to Client\n", size_of_file);
 
     while(!feof(file))
     {
