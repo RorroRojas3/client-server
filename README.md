@@ -8,7 +8,7 @@ To compile:
 ```
 make
 ```
-To delete compiles files:
+To delete compiled files:
 ```
 make clean
 ```
@@ -28,15 +28,5 @@ To Run Server:
 
 * **Rodrigo Ignacio Rojas Garcia** 
 
-## License
-
-GNU GENERAL PUBLIC LICENSE
-Version 3, 29 June 2007
-
-Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
-
-Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed
-
-gpl-3.0
 
 
