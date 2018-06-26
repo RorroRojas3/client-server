@@ -267,9 +267,9 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 						exit(1);
 					}
 					strcpy(client_input, buffer);
-					sprintf(path, "%s/%s", path, client_input);
+					sprintf(buffer, "%s/%s", path, client_input);
 					
-					success = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+					success = mkdir(buffer, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 					if (success == -1)
 					{
 						perror("mkdir() function failed");
@@ -462,7 +462,7 @@ void set_path(char *path, int *client_socket, int client_option, char *file_name
 			exit(1);
 		}
 		strcpy(client_input, buffer);
-		sprintf(path, "%s/%s", path, client_input);	
+		sprintf(path, "%s/%s", path, client_input);
 	}
 }
 
@@ -501,13 +501,11 @@ void receive_file_from_client(int *client_socket, int client_option)
         exit(1);
     }
     file_size = atoi(buffer);
-    printf("Size of file to be received: %d\n", file_size);
+     	printf("Size of file to be received: %d\n", file_size);
 
     // Lets client decide path for file to stored at
     set_path(path, client_socket, client_option, file_name);
-    sprintf(path, "%s/%s", path, file_name);
-
-    
+    sprintf(path, "%s/%s", path, file_name);    
 
     // Receives file from Client
     FILE *file;
@@ -531,8 +529,6 @@ void receive_file_from_client(int *client_socket, int client_option)
     }
 
     // Closes accepted client socket
-    //printf("Bytes received: %d\n", total_bytes);
-    //printf("Successfull file transmission! Client left!\n");
     fclose(file);
 }
 
