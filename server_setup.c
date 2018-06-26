@@ -491,11 +491,7 @@ void receive_file_from_client(int *client_socket, int client_option)
     }
     sprintf(file_name, "%s", buffer);
     printf("Name of file to be received: %s\n", file_name);
-
-    // Lets client decide path for file to stored at
-    set_path(path, client_socket, client_option, file_name);
-    sprintf(path, "%s/%s", path, file_name);
-
+    
     // Receives the file size 
     memset(buffer, '\0', sizeof(buffer));
     received_bytes = recv(*client_socket, buffer, MAXSIZE - 1, 0);
@@ -506,6 +502,12 @@ void receive_file_from_client(int *client_socket, int client_option)
     }
     file_size = atoi(buffer);
     printf("Size of file to be received: %d\n", file_size);
+
+    // Lets client decide path for file to stored at
+    set_path(path, client_socket, client_option, file_name);
+    sprintf(path, "%s/%s", path, file_name);
+
+    
 
     // Receives file from Client
     FILE *file;

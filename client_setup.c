@@ -407,9 +407,6 @@ void send_file_to_server(int *client_socket, int client_option)
     }
     printf("Sent file name: %s to Server\n", file_name);
     
-    // Let Client decide where to store the file on Server
-    set_path(client_socket);
-    
     // Send file size to Server
     sprintf(buffer, "%d", file_size);
     sent_bytes = send(*client_socket, buffer, sizeof(buffer) - 1, 0);
@@ -420,6 +417,11 @@ void send_file_to_server(int *client_socket, int client_option)
     	exit(1);
     }
     printf("Sent file size: %d to Server\n", file_size);
+    
+    // Let Client decide where to store the file on Server
+    set_path(client_socket);
+    
+    
     
     while(!feof(file))
     {
